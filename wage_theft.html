@@ -37,6 +37,19 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-
 .sn-item.active{color:var(--ink);border-bottom-color:var(--ink);}
 
 /* LOADING SCREEN */
+/* CHECK BANNER */
+#checkBanner{background:var(--ink);border-bottom:1px solid rgba(255,255,255,0.08);}
+.check-banner-inner{max-width:860px;margin:0 auto;padding:28px 32px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;}
+.cb-eyebrow{font-size:0.62rem;font-weight:600;text-transform:uppercase;letter-spacing:0.18em;color:var(--blue);margin-bottom:8px;}
+.cb-headline{font-family:var(--display);font-size:clamp(1.2rem,3vw,1.7rem);font-weight:700;color:#fff;line-height:1.2;margin-bottom:6px;}
+.cb-headline strong{color:var(--blue);}
+.cb-sub{font-size:0.82rem;color:rgba(255,255,255,0.45);line-height:1.5;}
+.cb-sub strong{color:rgba(255,255,255,0.75);}
+.cb-right{text-align:right;flex-shrink:0;}
+.cb-amount-label{font-size:0.6rem;font-weight:600;text-transform:uppercase;letter-spacing:0.15em;color:rgba(255,255,255,0.35);margin-bottom:4px;}
+.cb-amount{font-family:var(--display);font-size:clamp(1.8rem,4vw,2.8rem);font-weight:700;color:#fff;letter-spacing:-0.02em;line-height:1;}
+.cb-amount-sub{font-size:0.68rem;color:rgba(255,255,255,0.3);margin-top:4px;}
+
 .loading-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:12px;color:var(--muted);}
 .spinner{width:32px;height:32px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.7s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -169,6 +182,22 @@ footer{border-top:2px solid var(--ink);padding:20px 0 28px;margin-top:0;}
   <a class="err-btn" href="data.html">Browse all cases →</a>
 </div>
 
+<!-- Check banner (only shown when arriving via QR scan) -->
+<div id="checkBanner" style="display:none">
+  <div class="check-banner-inner">
+    <div class="cb-left">
+      <div class="cb-eyebrow">You scanned a wage theft check</div>
+      <div class="cb-headline">This check was made out to <strong id="cbWorker">—</strong></div>
+      <div class="cb-sub" id="cbSub">Check <span id="cbNum">—</span> · <span id="cbCompany">—</span> owes this person <strong id="cbAmount">—</strong></div>
+    </div>
+    <div class="cb-right">
+      <div class="cb-amount-label">Amount on this check</div>
+      <div class="cb-amount" id="cbAmountBig">—</div>
+      <div class="cb-amount-sub">their share of wages stolen</div>
+    </div>
+  </div>
+</div>
+
 <!-- Main content (shown after load) -->
 <div id="mainContent">
 
@@ -268,7 +297,21 @@ function fmtM(n){if(n>=1e6)return'$'+(n/1e6).toFixed(1)+'M';if(n>=1e3)return'$'+
 function fmtDate(s){if(!s||s==='None')return'Unknown';const[y,m,d]=s.split('-');if(!m)return s;return['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m-1]+' '+parseInt(d)+', '+y;}
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-const companyId = new URLSearchParams(window.location.search).get('company');
+const urlParams  = new URLSearchParams(window.location.search);
+const companyId  = urlParams.get('company');
+const urlWorker  = urlParams.get('worker');
+const urlCheck   = urlParams.get('check');
+const urlAmount  = urlParams.get('amount');
+
+// Show check banner if arriving via QR scan
+if(urlWorker && urlAmount) {
+  const banner = document.getElementById('checkBanner');
+  banner.style.display = 'block';
+  document.getElementById('cbWorker').textContent  = urlWorker;
+  document.getElementById('cbNum').textContent     = urlCheck ? '#'+urlCheck : '';
+  document.getElementById('cbAmountBig').textContent = '$'+new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}).format(parseFloat(urlAmount));
+  // cbCompany and cbSub filled after data loads
+}
 if(!companyId){ showError('No company specified.'); }
 else { loadData(); }
 
@@ -291,6 +334,13 @@ function loadData(){
 
 function render(co, stats){
   document.title = co.name + ' — NY Wage Theft Monitor';
+
+  // Fill banner company name if visible
+  if(urlWorker) {
+    document.getElementById('cbCompany').textContent = co.name;
+    document.getElementById('cbSub').innerHTML =
+      `Check ${urlCheck ? '#'+urlCheck+' · ' : ''}<strong>${co.name}</strong> owes this person <strong>$${new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}).format(parseFloat(urlAmount))}</strong>`;
+  }
 
   // Header
   document.getElementById('empName').textContent = co.name;
