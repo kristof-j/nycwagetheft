@@ -305,6 +305,12 @@ function show(id) {
 // Scanner input
 let buffer = '', timer = null;
 
+// Support paste for testing (Ctrl+V) — scanner uses keydown but paste works the same way
+document.addEventListener('paste', e => {
+  const text = (e.clipboardData || window.clipboardData).getData('text').trim();
+  if (text) handleScan(text);
+});
+
 document.addEventListener('keydown', e => {
   if (e.ctrlKey || e.altKey || e.metaKey) return;
 
