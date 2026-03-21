@@ -75,7 +75,16 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-
 .emp-wages{font-family:var(--mono);font-size:0.85rem;font-weight:500;color:var(--blue);text-align:right;white-space:nowrap;}
 .emp-cl{font-family:var(--mono);font-size:0.78rem;color:var(--muted);text-align:right;}
 
-/* INDUSTRY GRID */
+/* HOME MAP */
+.home-map-wrap{position:relative;width:100%;height:380px;background:var(--white);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+#home-map-svg{display:block;width:100%;height:100%;}
+.county-path{stroke:#fff;stroke-width:0.6px;cursor:pointer;transition:opacity 0.12s;}
+.county-path:hover{opacity:0.75;stroke:var(--ink);stroke-width:1.2px;}
+.home-map-tooltip{position:absolute;background:var(--white);border:1px solid var(--border);border-radius:5px;padding:8px 12px;pointer-events:none;opacity:0;transition:opacity 0.1s;box-shadow:0 3px 12px rgba(0,0,0,0.1);font-size:0.75rem;min-width:140px;}
+.home-map-tooltip.show{opacity:1;}
+.htt-name{font-weight:600;color:var(--ink);margin-bottom:3px;}
+.htt-wages{font-family:var(--mono);color:var(--blue);font-size:0.82rem;}
+.htt-sub{color:var(--muted);font-size:0.68rem;margin-top:1px;}
 .ind-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
 .ind-card{background:var(--white);border:1px solid var(--border);border-radius:6px;padding:16px 18px;cursor:pointer;transition:all 0.15s;text-decoration:none;display:block;}
 .ind-card:hover{border-color:var(--blue);box-shadow:0 2px 12px rgba(91,141,239,0.12);}
@@ -137,11 +146,22 @@ footer{border-top:2px solid var(--ink);padding:20px 40px 30px;max-width:860px;ma
 
 <div class="main">
 
-  <div class="sec-head fi" style="animation-delay:0.1s">
+  <!-- MAP -->
+  <div class="sec-head fi" style="animation-delay:0.05s">
+    <div class="sec-title">Where wages are being stolen</div>
+    <a class="sec-link" href="map.html">Full map →</a>
+  </div>
+  <div class="home-map-wrap fi" style="animation-delay:0.1s">
+    <svg id="home-map-svg"></svg>
+    <div class="home-map-tooltip" id="homeTooltip"></div>
+  </div>
+
+  <!-- TOP EMPLOYERS -->
+  <div class="sec-head fi" style="animation-delay:0.2s;margin-top:48px">
     <div class="sec-title">Top employers by wages stolen</div>
     <a class="sec-link" href="data.html">View all 34,000+ employers →</a>
   </div>
-  <table class="emp-table fi" style="animation-delay:0.15s">
+  <table class="emp-table fi" style="animation-delay:0.25s">
     <thead><tr>
       <th>#</th><th>Employer</th><th>Location</th>
       <th class="r">Wages owed</th><th class="r">Workers</th>
@@ -149,11 +169,11 @@ footer{border-top:2px solid var(--ink);padding:20px 40px 30px;max-width:860px;ma
     <tbody id="topBody"></tbody>
   </table>
 
-  <div class="sec-head fi" style="animation-delay:0.25s;margin-top:48px">
+  <div class="sec-head fi" style="animation-delay:0.35s;margin-top:48px">
     <div class="sec-title">By industry</div>
     <a class="sec-link" href="data.html">Filter by industry →</a>
   </div>
-  <div class="ind-grid fi" style="animation-delay:0.3s" id="indGrid"></div>
+  <div class="ind-grid fi" style="animation-delay:0.4s" id="indGrid"></div>
 
 </div>
 
@@ -209,6 +229,57 @@ function doSearch(){
   if(q) window.location.href='data.html?q='+encodeURIComponent(q);
   else window.location.href='data.html';
 }
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script>
+const CDATA = {"36001":{"n":"Albany","w":7411347},"36003":{"n":"Allegany","w":594357},"36005":{"n":"Bronx","w":28135299},"36007":{"n":"Broome","w":1630781},"36009":{"n":"Cattaraugus","w":738450},"36011":{"n":"Cayuga","w":345484},"36013":{"n":"Chautauqua","w":1486246},"36015":{"n":"Chemung","w":461654},"36017":{"n":"Chenango","w":172669},"36019":{"n":"Clinton","w":791391},"36021":{"n":"Columbia","w":919453},"36023":{"n":"Cortland","w":847772},"36025":{"n":"Delaware","w":615218},"36027":{"n":"Dutchess","w":3687724},"36029":{"n":"Erie","w":15112204},"36031":{"n":"Essex","w":438030},"36033":{"n":"Franklin","w":89238},"36035":{"n":"Fulton","w":272945},"36037":{"n":"Genesee","w":1396006},"36039":{"n":"Greene","w":595400},"36041":{"n":"Hamilton","w":76810},"36043":{"n":"Herkimer","w":536599},"36045":{"n":"Jefferson","w":1048363},"36047":{"n":"Kings","w":87296524},"36049":{"n":"Lewis","w":646970},"36051":{"n":"Livingston","w":366377},"36053":{"n":"Madison","w":779696},"36055":{"n":"Monroe","w":9339355},"36057":{"n":"Montgomery","w":370435},"36059":{"n":"Nassau","w":58911348},"36061":{"n":"New York","w":95643149},"36063":{"n":"Niagara","w":3003807},"36065":{"n":"Oneida","w":1882272},"36067":{"n":"Onondaga","w":11768104},"36069":{"n":"Ontario","w":1272179},"36071":{"n":"Orange","w":4482002},"36073":{"n":"Orleans","w":313264},"36075":{"n":"Oswego","w":1018200},"36077":{"n":"Otsego","w":693161},"36079":{"n":"Putnam","w":1768368},"36081":{"n":"Queens","w":82814333},"36083":{"n":"Rensselaer","w":1198198},"36085":{"n":"Richmond","w":9971163},"36087":{"n":"Rockland","w":6921697},"36089":{"n":"St. Lawrence","w":345348},"36091":{"n":"Saratoga","w":2234960},"36093":{"n":"Schenectady","w":1176971},"36095":{"n":"Schoharie","w":279599},"36097":{"n":"Schuyler","w":123331},"36099":{"n":"Seneca","w":179556},"36101":{"n":"Steuben","w":747516},"36103":{"n":"Suffolk","w":54037937},"36105":{"n":"Sullivan","w":687078},"36107":{"n":"Tioga","w":163262},"36109":{"n":"Tompkins","w":750739},"36111":{"n":"Ulster","w":2343310},"36113":{"n":"Warren","w":1129089},"36115":{"n":"Washington","w":218156},"36117":{"n":"Wayne","w":434054},"36119":{"n":"Westchester","w":22436415},"36121":{"n":"Wyoming","w":201632},"36123":{"n":"Yates","w":378304}};
+
+function fmtM2(n){if(n>=1e6)return'$'+(n/1e6).toFixed(1)+'M';if(n>=1e3)return'$'+(n/1e3).toFixed(0)+'K';return'$'+Math.round(n);}
+
+const vals = Object.values(CDATA).map(d=>d.w);
+const colorScale = d3.scaleQuantize([0, d3.max(vals)], ['#e8f0fd','#c8d9fa','#a0bef5','#6d9aee','#3d72d4','#1a4fb5','#0c3080']);
+
+const tt = document.getElementById('homeTooltip');
+
+d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json').then(us => {
+  requestAnimationFrame(() => {
+    const wrap = document.querySelector('.home-map-wrap');
+    const W = wrap.clientWidth || 800;
+    const H = wrap.clientHeight || 380;
+    const svg = d3.select('#home-map-svg')
+      .attr('viewBox',`0 0 ${W} ${H}`)
+      .attr('width', W).attr('height', H);
+
+    const ny = topojson.feature(us, us.objects.counties).features.filter(f=>String(f.id).startsWith('36'));
+    const proj = d3.geoMercator().fitExtent([[16,16],[W-16,H-16]], {type:'FeatureCollection',features:ny});
+    const path = d3.geoPath(proj);
+
+    svg.selectAll('path').data(ny).join('path')
+      .attr('class','county-path')
+      .attr('d', path)
+      .attr('fill', d => { const fips=String(d.id).padStart(5,'0'); return CDATA[fips] ? colorScale(CDATA[fips].w) : '#e8eaf0'; })
+      .on('mousemove', (event, d) => {
+        const fips = String(d.id).padStart(5,'0');
+        const data = CDATA[fips];
+        if(!data) return;
+        tt.innerHTML = `<div class="htt-name">${data.n} County</div><div class="htt-wages">${fmtM2(data.w)}</div><div class="htt-sub">stolen from workers</div>`;
+        tt.classList.add('show');
+        const rect = wrap.getBoundingClientRect();
+        let x = event.clientX - rect.left + 12;
+        let y = event.clientY - rect.top - 10;
+        if(x + 160 > W) x -= 172;
+        tt.style.left = x+'px'; tt.style.top = y+'px';
+      })
+      .on('mouseleave', () => tt.classList.remove('show'))
+      .on('click', (event, d) => {
+        const fips = String(d.id).padStart(5,'0');
+        const data = CDATA[fips];
+        if(data) window.location.href = `map.html`;
+      });
+  });
+});
 </script>
 </body>
 </html>
