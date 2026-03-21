@@ -377,50 +377,17 @@ const urlAmount  = urlParams.get('amount');
 if(urlWorker && urlAmount) {
   const banner = document.getElementById('checkBanner');
   banner.style.display = 'block';
-  document.getElementById('cbWorker').textContent  = urlWorker;
-  document.getElementById('cbNum').textContent     = urlCheck ? '#'+urlCheck : '';
-  document.getElementById('cbAmountBig').textContent = '$'+new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}).format(parseFloat(urlAmount));
-
-  let secondsLeft = 30;
-  let warningShown = false;
-  const countdownEl = document.getElementById('kioskCountdown');
-  const progressEl  = document.getElementById('kioskProgress');
-
-  const tick = setInterval(() => {
-    secondsLeft--;
-    if(countdownEl) countdownEl.textContent = secondsLeft;
-    if(progressEl)  progressEl.style.width  = (secondsLeft / 30 * 100) + '%';
-    // Show warning popup at 10 seconds
-    if(secondsLeft === 10 && !warningShown) {
-      warningShown = true;
-      document.getElementById('stillTherePopup').style.display = 'flex';
-    }
-    // Keep popup countdown in sync
-    const el2 = document.getElementById('kioskCountdown2');
-    if(el2 && secondsLeft <= 10) el2.textContent = secondsLeft;
-    if(secondsLeft <= 0) { clearInterval(tick); returnToKiosk(); }
-  }, 1000);
-
-  // Reset timer on any interaction
-  ['click','scroll','keydown','touchstart'].forEach(evt => {
-    document.addEventListener(evt, () => {
-      if(secondsLeft > 0) {
-        secondsLeft = 30;
-        warningShown = false;
-        if(countdownEl) countdownEl.textContent = 30;
-        if(progressEl)  progressEl.style.width  = '100%';
-        document.getElementById('stillTherePopup').style.display = 'none';
-      }
-    }, { passive: true });
-  });
+  document.getElementById('cbWorker').textContent     = urlWorker;
+  document.getElementById('cbNum').textContent        = urlCheck ? '#'+urlCheck : '';
+  document.getElementById('cbAmountBig').textContent  = '$'+new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}).format(parseFloat(urlAmount));
 }
 
 function returnToKiosk() {
+  sessionStorage.removeItem('kioskSession');
   window.location.href = 'kiosk.html';
 }
 function stayHere() {
   document.getElementById('stillTherePopup').style.display = 'none';
-  // Reset handled by click event listener above
 }
 if(!companyId){ showError('No company specified.'); }
 else { loadData(); }
@@ -568,5 +535,6 @@ function render(co, stats){
   document.getElementById('mainContent').style.display='block';
 }
 </script>
+<script src="kiosk-session.js"></script>
 </body>
 </html>

@@ -222,23 +222,25 @@ const RAMPS = {
 };
 
 // ── Load topology ─────────────────────────────────────────────────
-d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json').then(counties => {
-  drawMap(counties);
+d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json').then(us => {
+  // Small delay so the panel has fully painted and has real dimensions
+  requestAnimationFrame(() => drawMap(us));
 });
 
 function drawMap(us) {
   const svg = d3.select('#map-svg');
+  svg.selectAll('*').remove();
+
   const panel = document.getElementById('mapPanel');
-  const W = panel.clientWidth || 800;
-  const H = panel.clientHeight || 560;
+  const W = panel.clientWidth  || panel.offsetWidth  || 800;
+  const H = panel.clientHeight || panel.offsetHeight || 560;
+
   svg.attr('viewBox', `0 0 ${W} ${H}`)
      .attr('width', W)
      .attr('height', H);
 
-  // Filter to NY counties first, then fit projection to JUST those
-  const nyCounties = topojson.feature(us, us.objects.counties).features
-    .filter(f => String(f.id).startsWith('36'));
-
+  const allCounties = topojson.feature(us, us.objects.counties).features;
+  const nyCounties  = allCounties.filter(f => String(f.id).startsWith('36'));
   const nyCollection = { type: 'FeatureCollection', features: nyCounties };
 
   const projection = d3.geoMercator()
@@ -403,15 +405,21 @@ function clickListRow(fips) {
   });
 }
 
-// Redraw on resize
+// Cache topology for resize
+let cachedTopology = null;
+d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json').then(us => {
+  cachedTopology = us;
+  requestAnimationFrame(() => drawMap(us));
+});
+
 let resizeTimer;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
-    d3.select('#map-svg').selectAll('*').remove();
-    d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json').then(drawMap);
+    if (cachedTopology) drawMap(cachedTopology);
   }, 200);
 });
 </script>
+<script src="kiosk-session.js"></script>
 </body>
 </html>
