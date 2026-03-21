@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NY Wage Theft Monitor — Kiosk</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=Source+Code+Pro:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue: #5B8DEF;
+    --blue-dark: #2d5cba;
+    --ink: #0f1117;
+    --white: #ffffff;
+    --bg: #f8f9fb;
+    --border: #dee2ea;
+    --muted: #667085;
+    --soft: #98a2b3;
+    --red: #b92b2b;
+    --display: 'Playfair Display', Georgia, serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+    --mono: 'Source Code Pro', monospace;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--white);
+    color: var(--ink);
+    font-family: var(--sans);
+    overflow: hidden;
+    cursor: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Top rule ── */
+  .top-rule {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 4px; background: var(--ink);
+    z-index: 10;
+  }
+
+  /* ── Main screen ── */
+  .screen {
+    width: 100%; height: 100vh;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+  }
+
+  /* ══ IDLE ══ */
+  #idle {
+    display: flex; flex-direction: column;
+    align-items: center; text-align: center;
+    gap: 0;
+  }
+
+  .site-label {
+    font-size: 0.65rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.2em;
+    color: var(--soft); margin-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 14px; width: 100%;
+    text-align: center;
+  }
+
+  .idle-headline {
+    font-family: var(--display);
+    font-size: clamp(2.8rem, 5vw, 4.5rem);
+    font-weight: 700; line-height: 1.1;
+    letter-spacing: -0.02em; color: var(--ink);
+    margin-bottom: 14px;
+  }
+  .idle-headline em { font-style: italic; color: var(--blue); }
+
+  .idle-sub {
+    font-size: 1rem; font-weight: 400;
+    color: var(--muted); margin-bottom: 52px;
+    letter-spacing: 0.01em;
+  }
+
+  /* QR placeholder graphic */
+  .qr-graphic {
+    width: 110px; height: 110px;
+    border: 2px solid var(--ink);
+    padding: 10px;
+    margin-bottom: 18px;
+    position: relative;
+  }
+  .qr-inner {
+    width: 100%; height: 100%;
+    display: grid; grid-template-columns: repeat(7,1fr);
+    gap: 2px;
+  }
+  .qr-inner span {
+    background: var(--ink);
+    border-radius: 1px;
+  }
+  /* Scanning line */
+  .scan-bar {
+    position: absolute; left: 10px; right: 10px; height: 2px;
+    background: var(--blue); top: 10px;
+    animation: scanDown 2s ease-in-out infinite;
+  }
+  @keyframes scanDown {
+    0%   { top: 10px; opacity: 1; }
+    90%  { top: calc(100% - 12px); opacity: 1; }
+    100% { top: calc(100% - 12px); opacity: 0; }
+  }
+
+  .idle-cta {
+    font-size: 0.75rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.18em;
+    color: var(--ink);
+  }
+
+  /* ══ READING ══ */
+  #reading {
+    display: none; flex-direction: column;
+    align-items: center; gap: 14px; text-align: center;
+  }
+  .reading-lbl {
+    font-size: 0.65rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.18em;
+    color: var(--soft);
+  }
+  .reading-val {
+    font-family: var(--mono);
+    font-size: 0.9rem; color: var(--muted);
+    max-width: 500px; word-break: break-all;
+    line-height: 1.5;
+  }
+  .reading-progress {
+    width: 160px; height: 2px;
+    background: var(--border); border-radius: 1px;
+    overflow: hidden;
+  }
+  .reading-fill {
+    height: 100%; background: var(--ink);
+    border-radius: 1px;
+    animation: fillBar 0.6s ease forwards;
+  }
+  @keyframes fillBar { to { width: 100%; } }
+
+  /* ══ LAUNCHING ══ */
+  #launching {
+    display: none; flex-direction: column;
+    align-items: center; text-align: center; gap: 12px;
+  }
+  .launch-lbl {
+    font-size: 0.62rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.18em;
+    color: var(--soft);
+  }
+  .launch-company {
+    font-family: var(--display);
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 700; color: var(--ink);
+    letter-spacing: -0.02em; line-height: 1.1;
+    margin-bottom: 4px;
+  }
+  .launch-wages {
+    font-family: var(--mono);
+    font-size: 1.1rem; color: var(--blue);
+    font-weight: 500;
+  }
+  .launch-spinner {
+    width: 24px; height: 24px;
+    border: 2px solid var(--border);
+    border-top-color: var(--ink);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin-top: 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ══ ERROR ══ */
+  #error-state {
+    display: none; flex-direction: column;
+    align-items: center; gap: 10px; text-align: center;
+  }
+  .err-rule { width: 32px; height: 3px; background: var(--red); margin-bottom: 4px; }
+  .err-title {
+    font-family: var(--display);
+    font-size: 1.4rem; font-weight: 700; color: var(--ink);
+  }
+  .err-sub { font-size: 0.82rem; color: var(--muted); }
+
+  /* ── Bottom bar ── */
+  .bottom-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    padding: 14px 40px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-top: 1px solid var(--border);
+    background: var(--white);
+    z-index: 10;
+  }
+  .bb-brand {
+    font-size: 0.68rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--soft);
+  }
+  .bb-right {
+    font-size: 0.65rem; color: var(--soft);
+    font-family: var(--mono); letter-spacing: 0.06em;
+  }
+
+  /* Flash on navigate */
+  .flash {
+    position: fixed; inset: 0; z-index: 100;
+    background: var(--white); opacity: 0; pointer-events: none;
+    transition: opacity 0.1s ease;
+  }
+  .flash.go { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="top-rule"></div>
+<div class="flash" id="flash"></div>
+
+<div class="screen">
+
+  <!-- IDLE -->
+  <div id="idle">
+    <div class="site-label">NY Wage Theft Monitor</div>
+    <div class="idle-headline">
+      Scan your check.<br>See <em>what you're owed.</em>
+    </div>
+    <div class="idle-sub">Hold the QR code up to the scanner</div>
+    <div class="qr-graphic">
+      <div class="scan-bar"></div>
+      <div class="qr-inner" id="qrGrid"></div>
+    </div>
+    <div class="idle-cta">Ready to scan</div>
+  </div>
+
+  <!-- READING -->
+  <div id="reading">
+    <div class="reading-lbl">Reading…</div>
+    <div class="reading-val" id="readingVal">—</div>
+    <div class="reading-progress"><div class="reading-fill"></div></div>
+  </div>
+
+  <!-- LAUNCHING -->
+  <div id="launching">
+    <div class="launch-lbl">Loading case record</div>
+    <div class="launch-company" id="launchCompany">—</div>
+    <div class="launch-wages" id="launchWages"></div>
+    <div class="launch-spinner"></div>
+  </div>
+
+  <!-- ERROR -->
+  <div id="error-state">
+    <div class="err-rule"></div>
+    <div class="err-title">Unrecognized code</div>
+    <div class="err-sub">Please scan one of the wage theft recovery checks</div>
+  </div>
+
+</div>
+
+<div class="bottom-bar">
+  <div class="bb-brand">NY Wage Theft Monitor</div>
+  <div class="bb-right" id="bbTime">—</div>
+</div>
+
+<script>
+const BASE = "https://andrewtuna05.github.io/wage_theft.html?company=";
+
+const COMPANIES = {"royal-care":"Royal Care","american-business-institute":"American Business Institute","agl-industries-inc":"AGL Industries Inc","bouchard-transportation-company":"Bouchard Transportation Company","abi-american-business-institute-corp":"ABI/American Business Institute Corp","united-states-postal-service":"United States Postal Service","feher-rubbish-removal":"Feher Rubbish Removal","ba-kal-restaurant-corp":"Ba-Kal Restaurant Corp","streamline-group-inc":"Streamline Group Inc.","onondaga-county-children-and-family-services":"Onondaga County — Children & Family Services","dizzy-s":"Dizzy's","belmont-racetrack-brown":"Belmont Racetrack (Brown)","rk-seamless-gutters-inc":"RK Seamless Gutters Inc.","titan-development":"Titan Development","kum-gang-san":"Kum Gang San","jerome-beverage-inc":"Jerome Beverage Inc","eastern-fruit-vegetables-inc":"Eastern Fruit & Vegetables, Inc.","esteemed-patrol-inc":"Esteemed Patrol Inc","presidential-security-company":"Presidential Security Company","climax-manufacturing":"Climax Manufacturing","jackies-kids":"Jackies Kids","repairs-on-wheels":"Repairs on Wheels","charles-d-rinaldi-inc":"Charles D. Rinaldi, Inc.","sofar-sounds":"SoFar Sounds","brachs-supermarket":"Brachs Supermarket","albany-public-schools":"Albany Public Schools","long-beach-police-department":"Long Beach Police Department","dropcar-inc":"DropCar Inc.","a-sam-family-farms":"A Sam Family Farms","advance-auto-parts":"Advance Auto Parts","cardworks-servicing":"Cardworks Servicing","fine-fare-supermarket":"Fine Fare Supermarket","hepworth-farms":"Hepworth Farms","nypd-school-safety-division-manhattan-south":"NYPD School Safety Division Manhattan South","ernst-young-us-llp":"Ernst & Young US LLP","du-pasquier-co-inc":"Du Pasquier & Co. Inc."};
+
+// QR grid pattern
+const pat = [1,1,1,0,1,1,1,1,0,0,1,0,1,0,1,0,1,0,1,0,1,1,0,0,1,0,0,0,1,0,0,0,1,1,0,1,1,1,0,1,0,1,0,1,0,0,0,1,1];
+const grid = document.getElementById('qrGrid');
+pat.forEach(v => {
+  const s = document.createElement('span');
+  if (!v) s.style.background = 'transparent';
+  grid.appendChild(s);
+});
+
+// Clock
+function updateClock() {
+  document.getElementById('bbTime').textContent = new Date().toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
+}
+updateClock();
+setInterval(updateClock, 10000);
+
+// Screen switcher
+function show(id) {
+  ['idle','reading','launching','error-state'].forEach(s => {
+    document.getElementById(s).style.display = s === id ? 'flex' : 'none';
+  });
+}
+
+// Scanner input
+let buffer = '', timer = null;
+
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.altKey || e.metaKey) return;
+
+  if (e.key === 'Escape') { buffer = ''; clearTimeout(timer); show('idle'); return; }
+
+  if (e.key === 'Enter') {
+    clearTimeout(timer);
+    if (buffer.length > 0) handleScan(buffer);
+    buffer = '';
+    return;
+  }
+
+  if (e.key.length === 1) {
+    buffer += e.key;
+    if (buffer.length >= 3) {
+      show('reading');
+      document.getElementById('readingVal').textContent = buffer;
+    }
+    clearTimeout(timer);
+    timer = setTimeout(() => { if (buffer.length > 0) handleScan(buffer); buffer = ''; }, 500);
+  }
+});
+
+function handleScan(raw) {
+  raw = raw.trim();
+  let companyId = null;
+  const m = raw.match(/[?&]company=([^&\s]+)/);
+  if (m) companyId = m[1];
+  if (!companyId && COMPANIES[raw]) companyId = raw;
+
+  if (!companyId || !COMPANIES[companyId]) {
+    show('error-state');
+    setTimeout(() => { buffer = ''; show('idle'); }, 3000);
+    return;
+  }
+
+  document.getElementById('launchCompany').textContent = COMPANIES[companyId];
+  document.getElementById('launchWages').textContent = '';
+  show('launching');
+
+  const flash = document.getElementById('flash');
+  flash.classList.add('go');
+  setTimeout(() => flash.classList.remove('go'), 150);
+  setTimeout(() => { window.location.href = BASE + companyId; }, 800);
+}
+
+show('idle');
+</script>
+</body>
+</html>

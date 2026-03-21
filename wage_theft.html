@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loading… — NY Wage Theft Monitor</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@400;500;600&family=Source+Code+Pro:wght@400;500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --blue:#5B8DEF;--blue-dark:#2d5cba;--blue-pale:#eef3fd;
+  --ink:#111318;--ink2:#2c3347;--muted:#667085;--soft:#98a2b3;
+  --border:#dee2ea;--bg:#f8f9fb;--white:#fff;--red:#b92b2b;--red-pale:#fdf4f4;
+  --display:'Playfair Display',Georgia,serif;
+  --serif:'Source Serif 4',Georgia,serif;
+  --sans:'DM Sans',system-ui,sans-serif;
+  --mono:'Source Code Pro',monospace;
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+
+/* MASTHEAD */
+.masthead{background:var(--white);border-bottom:2px solid var(--ink);}
+.mh-top{display:flex;align-items:center;justify-content:space-between;padding:13px 40px;border-bottom:1px solid var(--border);}
+.mh-brand{font-family:var(--display);font-size:1.35rem;font-weight:700;color:var(--ink);text-decoration:none;}
+.mh-brand span{color:var(--blue);}
+.mh-center{font-size:0.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;}
+.mh-nav{display:flex;gap:18px;align-items:center;}
+.mh-link{font-size:0.78rem;font-weight:500;color:var(--muted);text-decoration:none;transition:color 0.15s;}
+.mh-link:hover{color:var(--ink);}
+.mh-btn{font-size:0.73rem;font-weight:600;font-family:var(--sans);background:var(--blue);color:#fff;border:none;padding:7px 15px;border-radius:4px;cursor:pointer;text-decoration:none;}
+.mh-btn:hover{background:var(--blue-dark);}
+.sec-nav{display:flex;padding:0 40px;overflow-x:auto;border-bottom:none;}
+.sn-item{font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);padding:9px 14px;border-bottom:2px solid transparent;text-decoration:none;white-space:nowrap;transition:all 0.12s;}
+.sn-item:hover{color:var(--ink);}
+.sn-item.active{color:var(--ink);border-bottom-color:var(--ink);}
+
+/* LOADING SCREEN */
+.loading-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:12px;color:var(--muted);}
+.spinner{width:32px;height:32px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ERROR */
+.error-screen{max-width:500px;margin:80px auto;text-align:center;padding:0 20px;}
+.err-title{font-family:var(--display);font-size:1.5rem;margin-bottom:8px;}
+.err-sub{font-size:0.85rem;color:var(--muted);margin-bottom:20px;}
+.err-btn{display:inline-block;background:var(--blue);color:#fff;font-family:var(--sans);font-size:0.8rem;font-weight:600;padding:10px 20px;border-radius:5px;text-decoration:none;}
+
+/* EMPLOYER HEADER */
+.emp-header{background:var(--white);border-bottom:1px solid var(--border);padding:36px 0 32px;}
+.page{max-width:860px;margin:0 auto;padding:0 32px;}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:0.68rem;color:var(--soft);margin-bottom:16px;text-transform:uppercase;letter-spacing:0.08em;}
+.breadcrumb a{color:var(--blue);text-decoration:none;}
+.breadcrumb a:hover{text-decoration:underline;}
+.bc-sep{color:var(--border);}
+.emp-name{font-family:var(--display);font-size:clamp(1.9rem,5vw,3rem);font-weight:700;letter-spacing:-0.02em;line-height:1.1;margin-bottom:12px;}
+.emp-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;}
+.pill{display:inline-flex;align-items:center;font-size:0.72rem;font-weight:500;color:var(--muted);background:var(--bg);border:1px solid var(--border);padding:4px 11px;border-radius:20px;}
+.pill.blue{color:var(--blue);background:var(--blue-pale);border-color:#c8d9fa;}
+.dol-notice{display:flex;align-items:flex-start;gap:11px;background:#fffdf0;border:1px solid #e8d070;border-radius:7px;padding:13px 15px;font-size:0.78rem;color:#7a6020;line-height:1.55;}
+.dol-notice strong{color:#5a4010;}
+
+/* CONTENT */
+.content{padding:36px 0 72px;}
+.pull-stat{border-left:4px solid var(--blue);padding:22px 26px;margin:32px 0;background:var(--blue-pale);border-radius:0 6px 6px 0;}
+.ps-lbl{font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;color:var(--blue);margin-bottom:5px;}
+.ps-num{font-family:var(--display);font-size:clamp(2.2rem,5.5vw,3.5rem);font-weight:700;color:var(--ink);letter-spacing:-0.02em;line-height:1;}
+.ps-sub{font-family:var(--serif);font-size:0.9rem;color:var(--muted);font-style:italic;margin-top:5px;}
+
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin:28px 0;}
+.st{background:var(--white);padding:18px 20px;transition:background 0.15s;}
+.st:hover{background:var(--bg);}
+.st-lbl{font-size:0.62rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--soft);margin-bottom:6px;}
+.st-val{font-family:var(--display);font-size:1.6rem;line-height:1;letter-spacing:-0.01em;}
+.st-val.blue{color:var(--blue);}
+.st-val.red{color:var(--red);}
+.st-note{font-size:0.68rem;color:var(--soft);margin-top:4px;}
+
+.body-text{font-family:var(--serif);font-size:1rem;line-height:1.75;color:var(--ink2);max-width:640px;margin-bottom:24px;}
+.body-text strong{font-weight:600;color:var(--ink);}
+
+.callout{display:flex;gap:11px;background:var(--red-pale);border-left:3px solid var(--red);padding:13px 15px;border-radius:0 5px 5px 0;margin:22px 0;}
+.callout-text{font-family:var(--serif);font-size:0.84rem;color:#7a1a1a;line-height:1.55;}
+.callout-text strong{font-weight:600;color:#5a0f0f;}
+
+/* DATA SECTIONS */
+.dh{display:flex;align-items:baseline;justify-content:space-between;border-top:2px solid var(--ink);padding-top:10px;margin:44px 0 20px;gap:12px;}
+.dh-title{font-family:var(--display);font-size:1.3rem;font-weight:700;letter-spacing:-0.01em;}
+.dh-sub{font-size:0.73rem;color:var(--muted);text-align:right;max-width:240px;}
+
+/* COMPARISON BARS */
+.cmp-list{display:flex;flex-direction:column;gap:14px;margin-bottom:4px;}
+.cmp-item{}
+.cmp-top{display:flex;justify-content:space-between;font-size:0.79rem;margin-bottom:5px;}
+.cmp-name{font-weight:600;color:var(--ink2);}
+.cmp-val{font-family:var(--mono);color:var(--muted);font-size:0.75rem;}
+.cmp-track{height:9px;background:var(--bg);border-radius:2px;overflow:hidden;border:1px solid var(--border);}
+.cmp-fill{height:100%;border-radius:2px;transition:width 1.2s cubic-bezier(0.16,1,0.3,1);}
+.cf-this{background:var(--blue);}
+.cf-ind{background:#a8c0f0;}
+.cf-all{background:#dde6f8;}
+
+/* CHART CARDS */
+.chart-card{background:var(--white);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:4px;}
+.cc-head{padding:16px 20px 12px;border-bottom:1px solid var(--border);}
+.cc-title{font-family:var(--display);font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:2px;}
+.cc-note{font-size:0.73rem;color:var(--muted);line-height:1.4;}
+.cc-body{padding:18px 20px;}
+
+/* EXPLORE STRIP */
+.explore{background:var(--ink);border-radius:8px;padding:26px 30px;margin-top:40px;display:flex;align-items:center;justify-content:space-between;gap:20px;}
+.ex-lbl{font-size:0.6rem;font-weight:600;text-transform:uppercase;letter-spacing:0.15em;color:var(--blue);margin-bottom:5px;}
+.ex-title{font-family:var(--display);font-size:1.15rem;font-weight:700;color:#fff;margin-bottom:3px;}
+.ex-sub{font-size:0.75rem;color:rgba(255,255,255,0.4);}
+.ex-btn{flex-shrink:0;background:var(--blue);color:#fff;font-family:var(--sans);font-size:0.78rem;font-weight:600;border:none;padding:11px 20px;border-radius:5px;cursor:pointer;text-decoration:none;white-space:nowrap;}
+.ex-btn:hover{background:var(--blue-dark);}
+
+/* FOOTER */
+footer{border-top:2px solid var(--ink);padding:20px 0 28px;margin-top:0;}
+.ft-inner{max-width:860px;margin:0 auto;padding:0 32px;}
+.ft-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.ft-brand{font-family:var(--display);font-size:1rem;font-weight:700;color:var(--ink);}
+.ft-brand span{color:var(--blue);}
+.ft-links{display:flex;gap:14px;}
+.ft-link{font-size:0.73rem;color:var(--muted);text-decoration:none;}
+.ft-link:hover{color:var(--ink);text-decoration:underline;}
+.ft-note{font-size:0.65rem;color:var(--soft);margin-top:11px;line-height:1.6;}
+
+#mainContent{display:none;}
+@media(max-width:640px){
+  .mh-top{padding:10px 16px;} .mh-center{display:none;}
+  .sec-nav{padding:0 16px;}
+  .page{padding:0 16px;}
+  .stat-row{grid-template-columns:1fr 1fr;}
+  .st:last-child{grid-column:1/-1;}
+  .explore{flex-direction:column;padding:20px 18px;}
+  .ft-inner{padding:0 16px;}
+}
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="mh-top">
+    <a class="mh-brand" href="index.html">NY Wage Theft Monitor</a>
+    <div class="mh-center">NY Wage Theft Monitor · Data through Jan 2025</div>
+    <nav class="mh-nav">
+      <a class="mh-link" href="data.html">← All cases</a>
+    </nav>
+  </div>
+  <div class="sec-nav">
+    <a class="sn-item active" href="#case">This case</a>
+    <a class="sn-item" href="#industry">Industry</a>
+    <a class="sn-item" href="#geography">Geography</a>
+  </div>
+</div>
+
+<!-- Loading -->
+<div id="loadingScreen" class="loading-screen">
+  <div class="spinner"></div>
+  <div>Loading case record…</div>
+</div>
+
+<!-- Error -->
+<div id="errorScreen" class="error-screen" style="display:none">
+  <div class="err-title">Employer not found</div>
+  <div class="err-sub" id="errMsg">We couldn't find a case record for that employer.</div>
+  <a class="err-btn" href="data.html">Browse all cases →</a>
+</div>
+
+<!-- Main content (shown after load) -->
+<div id="mainContent">
+
+  <div class="emp-header">
+    <div class="page">
+      <div class="breadcrumb">
+        <a href="index.html">Home</a><span class="bc-sep">›</span>
+        <a href="data.html">All cases</a><span class="bc-sep">›</span>
+        <span id="bcInd">—</span><span class="bc-sep">›</span>
+        <span id="bcCo">—</span>
+      </div>
+      <h1 class="emp-name" id="empName">—</h1>
+      <div class="emp-meta" id="empMeta"></div>
+      <div class="dol-notice">
+        <span style="font-size:1rem;flex-shrink:0;margin-top:1px">⚖️</span>
+        <div><strong>Official DOL finding.</strong> This employer was investigated by the New York State or Federal Department of Labor and found to owe unpaid wages. Figures reflect wages determined by investigators — not estimates. The date shown is when the case was filed, not necessarily when it resolved.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page">
+  <div class="content">
+
+    <!-- Pull stat -->
+    <div class="pull-stat" id="case">
+      <div class="ps-lbl">Total wages owed to workers</div>
+      <div class="ps-num" id="psTotal">—</div>
+      <div class="ps-sub" id="psSub">—</div>
+    </div>
+
+    <!-- Body text -->
+    <p class="body-text" id="bodyText">—</p>
+
+    <!-- Stat row -->
+    <div class="stat-row">
+      <div class="st">
+        <div class="st-lbl">Total wages owed</div>
+        <div class="st-val blue" id="svTotal">—</div>
+        <div class="st-note">Documented by DOL</div>
+      </div>
+      <div class="st">
+        <div class="st-lbl">Workers affected</div>
+        <div class="st-val" id="svClaimants">—</div>
+        <div class="st-note">Claimants on this case</div>
+      </div>
+      <div class="st">
+        <div class="st-lbl">Avg loss per worker</div>
+        <div class="st-val red" id="svAvg">—</div>
+        <div class="st-note">If split evenly</div>
+      </div>
+    </div>
+
+    <!-- Callout -->
+    <div class="callout">
+      <span style="font-size:0.95rem;flex-shrink:0;margin-top:2px">⚠</span>
+      <div class="callout-text">
+        <strong>Note on dates.</strong> The date shown is when the DOL investigation was filed — not when it resolved. Some cases remain open. The final amount recovered may differ from the amount owed shown here.
+      </div>
+    </div>
+
+    <!-- Industry comparison -->
+    <div class="dh" id="industry">
+      <div class="dh-title">Industry comparison</div>
+      <div class="dh-sub" id="dhIndSub">—</div>
+    </div>
+    <div class="cmp-list" id="cmpList"></div>
+
+    <div class="chart-card">
+      <div class="cc-head">
+        <div class="cc-title">Top industries by wages stolen</div>
+        <div class="cc-note">Total wages owed across all documented NY cases by industry. <strong id="indHiNote">—</strong></div>
+      </div>
+      <div class="cc-body"><div style="position:relative;height:260px"><canvas id="indChart"></canvas></div></div>
+    </div>
+
+    <!-- Geography -->
+    <div class="dh" id="geography">
+      <div class="dh-title">Where it's happening</div>
+      <div class="dh-sub">Most affected New York counties by total wages stolen</div>
+    </div>
+    <div class="chart-card">
+      <div class="cc-head">
+        <div class="cc-title">Wages stolen by county</div>
+        <div class="cc-note">Total wages owed to workers per county across all documented cases. <strong id="cntyHiNote"></strong></div>
+      </div>
+      <div class="cc-body"><div style="position:relative;height:250px"><canvas id="cntyChart"></canvas></div></div>
+    </div>
+
+    <!-- Explore strip --></div>
+  </div>
+
+  <footer>
+    <div class="ft-inner">
+      <div class="ft-top">
+        <div class="ft-brand">NY Wage Theft Monitor</div>
+        <div class="ft-links">
+          <a class="ft-link" href="https://www.justicialab.org" target="_blank">Justicia Lab</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</div><!-- /mainContent -->
+
+<script>
+function fmt(n){return'$'+new Intl.NumberFormat('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}).format(n);}
+function fmtM(n){if(n>=1e6)return'$'+(n/1e6).toFixed(1)+'M';if(n>=1e3)return'$'+(n/1e3).toFixed(0)+'K';return fmt(n);}
+function fmtDate(s){if(!s||s==='None')return'Unknown';const[y,m,d]=s.split('-');if(!m)return s;return['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m-1]+' '+parseInt(d)+', '+y;}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+const companyId = new URLSearchParams(window.location.search).get('company');
+if(!companyId){ showError('No company specified.'); }
+else { loadData(); }
+
+function showError(msg){
+  document.getElementById('loadingScreen').style.display='none';
+  document.getElementById('errMsg').textContent = msg || 'Could not load case data.';
+  document.getElementById('errorScreen').style.display='block';
+}
+
+function loadData(){
+  Promise.all([
+    fetch('companies.json').then(r=>r.json()),
+    fetch('stats.json').then(r=>r.json())
+  ]).then(([companies, stats])=>{
+    const co = companies.find(c=>c.id===companyId);
+    if(!co){ showError(`No record found for "${companyId}".`); return; }
+    render(co, stats);
+  }).catch(()=>showError('Failed to load data. Make sure companies.json and stats.json are in the same folder.'));
+}
+
+function render(co, stats){
+  document.title = co.name + ' — NY Wage Theft Monitor';
+
+  // Header
+  document.getElementById('empName').textContent = co.name;
+  document.getElementById('bcInd').textContent   = co.ind||'Other';
+  document.getElementById('bcCo').textContent    = co.name;
+
+  const meta = document.getElementById('empMeta');
+  const pills = [
+    co.city ? `<span class="pill">📍 ${escHtml(co.city)}${co.county?', '+escHtml(co.county):''}</span>` : '',
+    co.industry ? `<span class="pill blue">${escHtml(co.industry)}</span>` : '',
+    co.date ? `<span class="pill">Case filed: ${fmtDate(co.date)}</span>` : '',
+    `<span class="pill">DOL Record</span>`,
+  ];
+  meta.innerHTML = pills.filter(Boolean).join('');
+
+  // Pull stat
+  document.getElementById('psTotal').textContent = fmt(co.wages);
+  document.getElementById('psSub').textContent   = co.claimants
+    ? `Across ${co.claimants.toLocaleString()} claimant${co.claimants!==1?'s':''} — an average of ${fmt(co.avg)} per worker`
+    : 'Number of claimants not recorded';
+
+  // Body text
+  document.getElementById('bodyText').innerHTML =
+    `The figures below come directly from Department of Labor investigative records.
+    They represent wages <strong>found to be owed</strong> — not allegations.
+    Scroll down to see how <strong>${escHtml(co.name)}</strong> compares to others
+    in the <strong>${escHtml(co.ind||'Other')}</strong> industry and across all
+    documented New York wage theft cases.`;
+
+  // Stat row
+  document.getElementById('svTotal').textContent    = fmt(co.wages);
+  document.getElementById('svClaimants').textContent = co.claimants ? co.claimants.toLocaleString() : '—';
+  document.getElementById('svAvg').textContent      = co.avg ? fmt(co.avg) : '—';
+
+  // Industry comparison
+  const indData  = stats.industries.find(i=>i.name===co.ind) || {wages:0,claimants:0};
+  document.getElementById('dhIndSub').textContent  = `${co.name} vs the ${co.ind||'Other'} industry`;
+  document.getElementById('indHiNote').textContent = (co.ind||'Other') + ' is highlighted.';
+
+  const cmpList = document.getElementById('cmpList');
+  const allWages = stats.total_wages;
+  [
+    {label:co.name,                              val:co.wages,     cls:'cf-this'},
+    {label:(co.ind||'Other')+' (industry total)',val:indData.wages,cls:'cf-ind'},
+    {label:'All NY wage theft cases',            val:allWages,     cls:'cf-all'},
+  ].forEach(r=>{
+    const pct = Math.max(r.val/allWages*100,0.5).toFixed(2);
+    cmpList.innerHTML+=`<div class="cmp-item">
+      <div class="cmp-top"><span class="cmp-name">${escHtml(r.label)}</span><span class="cmp-val">${fmtM(r.val)}</span></div>
+      <div class="cmp-track"><div class="cmp-fill ${r.cls}" style="width:${pct}%"></div></div>
+    </div>`;
+  });
+
+  // County highlight
+  const coCounty = co.county;
+  const coCountyData = stats.counties.find(c=>c.name===coCounty);
+  if(coCountyData){
+    document.getElementById('cntyHiNote').textContent = coCounty+' is highlighted.';
+  }
+
+  // ── Charts ──
+  const tClr='#98a2b3', gClr='#f0f2f6', bClr='#dee2ea';
+  const tFont={family:"'DM Sans',sans-serif",size:11};
+  const ttBase={backgroundColor:'#fff',borderColor:'#dee2ea',borderWidth:1,titleColor:'#111318',bodyColor:'#667085',padding:12,cornerRadius:4,titleFont:{family:"'DM Sans',sans-serif",weight:'600'},bodyFont:{family:"'DM Sans',sans-serif"}};
+
+  // Industry chart
+  const inds = stats.industries.filter(i=>i.name!=='Other').slice(0,8);
+  const hiInd = co.ind||'Other';
+  new Chart(document.getElementById('indChart'),{
+    type:'bar',
+    data:{labels:inds.map(i=>i.name),datasets:[{
+      data:inds.map(i=>i.wages),borderRadius:3,borderSkipped:false,
+      backgroundColor:inds.map(i=>i.name===hiInd?'#5B8DEF':'#dde6f8'),
+      hoverBackgroundColor:inds.map(i=>i.name===hiInd?'#2d5cba':'#b0c4f0'),
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...ttBase,callbacks:{label:c=>' '+fmtM(c.raw)+' in wages stolen'}}},
+      scales:{
+        x:{ticks:{color:tClr,font:tFont,maxRotation:30},grid:{display:false},border:{color:bClr}},
+        y:{ticks:{color:tClr,font:tFont,callback:v=>fmtM(v)},grid:{color:gClr},border:{display:false}}
+      }
+    }
+  });
+
+  // County chart — top 8 + highlight this company's county
+  const counties = stats.counties.slice(0,8);
+  new Chart(document.getElementById('cntyChart'),{
+    type:'bar',
+    data:{labels:counties.map(c=>c.name.replace(' County','')),datasets:[{
+      data:counties.map(c=>c.wages),borderRadius:3,borderSkipped:false,
+      backgroundColor:counties.map(c=>c.name===coCounty?'#5B8DEF':'#dde6f8'),
+      hoverBackgroundColor:counties.map(c=>c.name===coCounty?'#2d5cba':'#b0c4f0'),
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...ttBase,callbacks:{label:c=>' '+fmtM(c.raw)+' stolen'}}},
+      scales:{
+        x:{ticks:{color:tClr,font:tFont,maxRotation:30},grid:{display:false},border:{color:bClr}},
+        y:{ticks:{color:tClr,font:tFont,callback:v=>fmtM(v)},grid:{color:gClr},border:{display:false}}
+      }
+    }
+  });
+
+  // Show
+  document.getElementById('loadingScreen').style.display='none';
+  document.getElementById('mainContent').style.display='block';
+}
+</script>
+</body>
+</html>
