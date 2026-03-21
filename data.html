@@ -176,6 +176,7 @@ const INDUSTRIES = ['Restaurants','Healthcare','Construction','Retail','Delivery
 const params = new URLSearchParams(window.location.search);
 if(params.get('q')) document.getElementById('searchBox').value = params.get('q');
 if(params.get('ind')) activeInd = params.get('ind');
+if(params.get('county')) activeCounty = params.get('county');
 
 // Build industry filters
 const indContainer = document.getElementById('indFilters');
@@ -204,6 +205,9 @@ fetch('index.json').then(r=>r.json()).then(data=>{
     o.value=c; o.textContent=c;
     sel.appendChild(o);
   });
+
+  // If county came from URL param, set the dropdown to match
+  if(activeCounty) sel.value = activeCounty;
 
   applyFilters();
 });
