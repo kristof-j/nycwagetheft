@@ -64,29 +64,6 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-
 }
 .stp-leave:hover{color:var(--ink);border-color:var(--ink);}
 
-/* KIOSK RETURN BAR */
-.kiosk-return-bar{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:10px 32px;background:rgba(0,0,0,0.25);
-  border-top:1px solid rgba(255,255,255,0.08);
-  flex-wrap:wrap;gap:12px;
-}
-.krb-btn{
-  font-family:var(--sans);font-size:0.78rem;font-weight:600;
-  background:rgba(255,255,255,0.1);color:#fff;
-  border:1px solid rgba(255,255,255,0.2);
-  padding:8px 18px;border-radius:4px;cursor:pointer;
-  transition:background 0.15s;
-}
-.krb-btn:hover{background:rgba(255,255,255,0.2);}
-.krb-countdown{
-  display:flex;align-items:center;gap:12px;
-  font-size:0.72rem;color:rgba(255,255,255,0.4);
-}
-.krb-countdown strong{color:rgba(255,255,255,0.7);}
-.krb-progress-wrap{width:100px;height:3px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;}
-.krb-progress{height:100%;width:100%;background:var(--blue);border-radius:2px;transition:width 1s linear;}
-
 /* CHECK BANNER */
 #checkBanner{background:var(--ink);border-bottom:1px solid rgba(255,255,255,0.08);}
 .check-banner-inner{max-width:860px;margin:0 auto;padding:28px 32px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;}
@@ -244,14 +221,6 @@ footer{border-top:2px solid var(--ink);padding:20px 0 28px;margin-top:0;}
       <div class="cb-amount-label">Amount on this check</div>
       <div class="cb-amount" id="cbAmountBig">—</div>
       <div class="cb-amount-sub">their share of wages stolen</div>
-    </div>
-  </div>
-  <!-- Kiosk return bar -->
-  <div class="kiosk-return-bar" id="kioskReturnBar">
-    <button class="krb-btn" onclick="returnToKiosk()">← Scan another check</button>
-    <div class="krb-countdown">
-      Returning to scanner in <strong id="kioskCountdown">60</strong>s
-      <div class="krb-progress-wrap"><div class="krb-progress" id="kioskProgress"></div></div>
     </div>
   </div>
 </div>

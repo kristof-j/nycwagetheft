@@ -112,6 +112,17 @@
     text-transform: uppercase; letter-spacing: 0.18em;
     color: var(--ink);
   }
+  .explore-btn {
+    margin-top: 20px;
+    display: inline-block;
+    font-size: 0.78rem; font-weight: 500;
+    color: var(--muted); text-decoration: none;
+    border: 1px solid var(--border);
+    padding: 9px 20px; border-radius: 4px;
+    transition: all 0.15s;
+    font-family: var(--sans);
+  }
+  .explore-btn:hover { color: var(--ink); border-color: var(--ink); }
 
   /* ══ READING ══ */
   #reading {
@@ -232,6 +243,7 @@
       <div class="qr-inner" id="qrGrid"></div>
     </div>
     <div class="idle-cta">Ready to scan</div>
+    <a class="explore-btn" href="index.html">Explore the data →</a>
   </div>
 
   <!-- READING -->
@@ -264,7 +276,7 @@
 </div>
 
 <script>
-const BASE = "https://andrewtuna05.github.io/wage_theft.html?company=";
+const BASE = "https://kristof-j.github.io/nycwagetheft/wage_theft.html?company=";
 
 const COMPANIES = {"royal-care":"Royal Care","american-business-institute":"American Business Institute","agl-industries-inc":"AGL Industries Inc","bouchard-transportation-company":"Bouchard Transportation Company","abi-american-business-institute-corp":"ABI/American Business Institute Corp","united-states-postal-service":"United States Postal Service","feher-rubbish-removal":"Feher Rubbish Removal","ba-kal-restaurant-corp":"Ba-Kal Restaurant Corp","streamline-group-inc":"Streamline Group Inc.","onondaga-county-children-and-family-services":"Onondaga County — Children & Family Services","dizzy-s":"Dizzy's","belmont-racetrack-brown":"Belmont Racetrack (Brown)","rk-seamless-gutters-inc":"RK Seamless Gutters Inc.","titan-development":"Titan Development","kum-gang-san":"Kum Gang San","jerome-beverage-inc":"Jerome Beverage Inc","eastern-fruit-vegetables-inc":"Eastern Fruit & Vegetables, Inc.","esteemed-patrol-inc":"Esteemed Patrol Inc","presidential-security-company":"Presidential Security Company","climax-manufacturing":"Climax Manufacturing","jackies-kids":"Jackies Kids","repairs-on-wheels":"Repairs on Wheels","charles-d-rinaldi-inc":"Charles D. Rinaldi, Inc.","sofar-sounds":"SoFar Sounds","brachs-supermarket":"Brachs Supermarket","albany-public-schools":"Albany Public Schools","long-beach-police-department":"Long Beach Police Department","dropcar-inc":"DropCar Inc.","a-sam-family-farms":"A Sam Family Farms","advance-auto-parts":"Advance Auto Parts","cardworks-servicing":"Cardworks Servicing","fine-fare-supermarket":"Fine Fare Supermarket","hepworth-farms":"Hepworth Farms","nypd-school-safety-division-manhattan-south":"NYPD School Safety Division Manhattan South","ernst-young-us-llp":"Ernst & Young US LLP","du-pasquier-co-inc":"Du Pasquier & Co. Inc."};
 
