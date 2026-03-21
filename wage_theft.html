@@ -37,6 +37,56 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-
 .sn-item.active{color:var(--ink);border-bottom-color:var(--ink);}
 
 /* LOADING SCREEN */
+/* STILL THERE POPUP */
+.stp-card{
+  background:var(--white);border-radius:10px;
+  padding:32px 36px;text-align:center;
+  max-width:340px;width:90%;
+  box-shadow:0 20px 60px rgba(0,0,0,0.3);
+}
+.stp-title{
+  font-family:var(--display);font-size:1.5rem;
+  font-weight:700;color:var(--ink);margin-bottom:8px;
+}
+.stp-sub{font-size:0.88rem;color:var(--muted);margin-bottom:24px;line-height:1.5;}
+.stp-sub strong{color:var(--ink);}
+.stp-actions{display:flex;flex-direction:column;gap:10px;}
+.stp-stay{
+  font-family:var(--sans);font-size:0.88rem;font-weight:600;
+  background:var(--ink);color:#fff;border:none;
+  padding:13px;border-radius:6px;cursor:pointer;transition:background 0.15s;
+}
+.stp-stay:hover{background:var(--ink2);}
+.stp-leave{
+  font-family:var(--sans);font-size:0.82rem;font-weight:500;
+  background:none;color:var(--muted);border:1px solid var(--border);
+  padding:11px;border-radius:6px;cursor:pointer;transition:all 0.15s;
+}
+.stp-leave:hover{color:var(--ink);border-color:var(--ink);}
+
+/* KIOSK RETURN BAR */
+.kiosk-return-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 32px;background:rgba(0,0,0,0.25);
+  border-top:1px solid rgba(255,255,255,0.08);
+  flex-wrap:wrap;gap:12px;
+}
+.krb-btn{
+  font-family:var(--sans);font-size:0.78rem;font-weight:600;
+  background:rgba(255,255,255,0.1);color:#fff;
+  border:1px solid rgba(255,255,255,0.2);
+  padding:8px 18px;border-radius:4px;cursor:pointer;
+  transition:background 0.15s;
+}
+.krb-btn:hover{background:rgba(255,255,255,0.2);}
+.krb-countdown{
+  display:flex;align-items:center;gap:12px;
+  font-size:0.72rem;color:rgba(255,255,255,0.4);
+}
+.krb-countdown strong{color:rgba(255,255,255,0.7);}
+.krb-progress-wrap{width:100px;height:3px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;}
+.krb-progress{height:100%;width:100%;background:var(--blue);border-radius:2px;transition:width 1s linear;}
+
 /* CHECK BANNER */
 #checkBanner{background:var(--ink);border-bottom:1px solid rgba(255,255,255,0.08);}
 .check-banner-inner{max-width:860px;margin:0 auto;padding:28px 32px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;}
@@ -196,6 +246,26 @@ footer{border-top:2px solid var(--ink);padding:20px 0 28px;margin-top:0;}
       <div class="cb-amount-sub">their share of wages stolen</div>
     </div>
   </div>
+  <!-- Kiosk return bar -->
+  <div class="kiosk-return-bar" id="kioskReturnBar">
+    <button class="krb-btn" onclick="returnToKiosk()">← Scan another check</button>
+    <div class="krb-countdown">
+      Returning to scanner in <strong id="kioskCountdown">60</strong>s
+      <div class="krb-progress-wrap"><div class="krb-progress" id="kioskProgress"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Still there popup -->
+<div id="stillTherePopup" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;">
+  <div class="stp-card">
+    <div class="stp-title">Are you still there?</div>
+    <div class="stp-sub">The kiosk will reset in <strong id="kioskCountdown2">10</strong> seconds.</div>
+    <div class="stp-actions">
+      <button class="stp-stay" onclick="stayHere()">Keep reading</button>
+      <button class="stp-leave" onclick="returnToKiosk()">← Back to scanner</button>
+    </div>
+  </div>
 </div>
 
 <!-- Main content (shown after load) -->
@@ -310,7 +380,47 @@ if(urlWorker && urlAmount) {
   document.getElementById('cbWorker').textContent  = urlWorker;
   document.getElementById('cbNum').textContent     = urlCheck ? '#'+urlCheck : '';
   document.getElementById('cbAmountBig').textContent = '$'+new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}).format(parseFloat(urlAmount));
-  // cbCompany and cbSub filled after data loads
+
+  let secondsLeft = 30;
+  let warningShown = false;
+  const countdownEl = document.getElementById('kioskCountdown');
+  const progressEl  = document.getElementById('kioskProgress');
+
+  const tick = setInterval(() => {
+    secondsLeft--;
+    if(countdownEl) countdownEl.textContent = secondsLeft;
+    if(progressEl)  progressEl.style.width  = (secondsLeft / 30 * 100) + '%';
+    // Show warning popup at 10 seconds
+    if(secondsLeft === 10 && !warningShown) {
+      warningShown = true;
+      document.getElementById('stillTherePopup').style.display = 'flex';
+    }
+    // Keep popup countdown in sync
+    const el2 = document.getElementById('kioskCountdown2');
+    if(el2 && secondsLeft <= 10) el2.textContent = secondsLeft;
+    if(secondsLeft <= 0) { clearInterval(tick); returnToKiosk(); }
+  }, 1000);
+
+  // Reset timer on any interaction
+  ['click','scroll','keydown','touchstart'].forEach(evt => {
+    document.addEventListener(evt, () => {
+      if(secondsLeft > 0) {
+        secondsLeft = 30;
+        warningShown = false;
+        if(countdownEl) countdownEl.textContent = 30;
+        if(progressEl)  progressEl.style.width  = '100%';
+        document.getElementById('stillTherePopup').style.display = 'none';
+      }
+    }, { passive: true });
+  });
+}
+
+function returnToKiosk() {
+  window.location.href = 'kiosk.html';
+}
+function stayHere() {
+  document.getElementById('stillTherePopup').style.display = 'none';
+  // Reset handled by click event listener above
 }
 if(!companyId){ showError('No company specified.'); }
 else { loadData(); }
@@ -356,10 +466,16 @@ function render(co, stats){
   ];
   meta.innerHTML = pills.filter(Boolean).join('');
 
-  // Pull stat
-  document.getElementById('psTotal').textContent = fmt(co.wages);
-  document.getElementById('psSub').textContent   = co.claimants
-    ? `Across ${co.claimants.toLocaleString()} claimant${co.claimants!==1?'s':''} — an average of ${fmt(co.avg)} per worker`
+  // If arriving via check scan, use the check's exact figures
+  // otherwise fall back to aggregated company data
+  const displayWages     = (urlAmount && urlWorker) ? parseFloat(urlAmount) : co.avg;
+  const displayClaimants = co.claimants;
+  const displayTotal     = co.wages;
+
+  // Pull stat — always show total owed by company
+  document.getElementById('psTotal').textContent = fmt(displayTotal);
+  document.getElementById('psSub').textContent   = displayClaimants
+    ? `Across ${displayClaimants.toLocaleString()} claimant${displayClaimants!==1?'s':''} — an average of ${fmt(co.avg)} per worker`
     : 'Number of claimants not recorded';
 
   // Body text
@@ -368,10 +484,16 @@ function render(co, stats){
     in the <strong>${escHtml(co.ind||'Other')}</strong> industry and across all
     documented New York wage theft cases.`;
 
-  // Stat row
-  document.getElementById('svTotal').textContent    = fmt(co.wages);
-  document.getElementById('svClaimants').textContent = co.claimants ? co.claimants.toLocaleString() : '—';
-  document.getElementById('svAvg').textContent      = co.avg ? fmt(co.avg) : '—';
+  // Stat row — if from check, show check amount in avg slot
+  document.getElementById('svTotal').textContent     = fmt(displayTotal);
+  document.getElementById('svClaimants').textContent = displayClaimants ? displayClaimants.toLocaleString() : '—';
+  document.getElementById('svAvg').textContent       = (urlAmount && urlWorker) ? fmt(parseFloat(urlAmount)) : (co.avg ? fmt(co.avg) : '—');
+
+  // Update avg label if from check
+  if(urlAmount && urlWorker) {
+    document.querySelector('.st:last-child .st-lbl').textContent = 'This check amount';
+    document.querySelector('.st:last-child .st-note').textContent = urlWorker + "'s share";
+  }
 
   // Industry comparison
   const indData  = stats.industries.find(i=>i.name===co.ind) || {wages:0,claimants:0};
