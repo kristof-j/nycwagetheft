@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Map — NY Wage Theft Monitor</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@400;500;600&family=Source+Code+Pro:wght@400;500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --blue:#5B8DEF;--blue-dark:#2d5cba;--blue-pale:#eef3fd;
+  --ink:#111318;--ink2:#2c3347;--muted:#667085;--soft:#98a2b3;
+  --border:#dee2ea;--bg:#f8f9fb;--white:#fff;--red:#b92b2b;
+  --display:'Playfair Display',Georgia,serif;
+  --sans:'DM Sans',system-ui,sans-serif;
+  --mono:'Source Code Pro',monospace;
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+
+/* MASTHEAD */
+.masthead{background:var(--white);border-bottom:2px solid var(--ink);}
+.mh-top{display:flex;align-items:center;justify-content:space-between;padding:13px 40px;border-bottom:1px solid var(--border);}
+.mh-brand{font-family:var(--display);font-size:1.35rem;font-weight:700;color:var(--ink);text-decoration:none;}
+.mh-brand span{color:var(--blue);}
+.mh-center{font-size:0.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;}
+.mh-nav{display:flex;gap:18px;align-items:center;}
+.mh-link{font-size:0.78rem;font-weight:500;color:var(--muted);text-decoration:none;transition:color 0.15s;}
+.mh-link:hover,.mh-link.active{color:var(--ink);}
+
+/* PAGE */
+.page-head{background:var(--white);border-bottom:1px solid var(--border);padding:28px 40px;}
+.ph-kicker{font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.15em;color:var(--red);margin-bottom:8px;}
+.ph-title{font-family:var(--display);font-size:1.9rem;font-weight:700;letter-spacing:-0.01em;margin-bottom:4px;}
+.ph-sub{font-size:0.85rem;color:var(--muted);}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:1fr 320px;height:calc(100vh - 116px);overflow:hidden;}
+
+/* MAP PANEL */
+.map-panel{background:var(--white);border-right:1px solid var(--border);position:relative;overflow:hidden;display:flex;align-items:stretch;}
+#map-svg{display:block;width:100%;height:100%;}
+
+/* County paths */
+.county{
+  stroke:#fff;stroke-width:0.8px;
+  cursor:pointer;
+  transition:opacity 0.15s;
+}
+.county:hover{opacity:0.8;stroke:#111;stroke-width:1.5px;}
+.county.selected{stroke:var(--ink);stroke-width:2px;opacity:1 !important;}
+
+/* Tooltip */
+.map-tooltip{
+  position:absolute;
+  background:var(--white);border:1px solid var(--border);
+  border-radius:6px;padding:10px 14px;
+  pointer-events:none;opacity:0;
+  transition:opacity 0.12s;
+  box-shadow:0 4px 16px rgba(0,0,0,0.1);
+  min-width:160px;
+  font-size:0.78rem;
+}
+.map-tooltip.visible{opacity:1;}
+.tt-county{font-weight:600;color:var(--ink);margin-bottom:4px;font-size:0.85rem;}
+.tt-wages{font-family:var(--mono);color:var(--blue);font-size:0.9rem;font-weight:500;}
+.tt-sub{color:var(--muted);margin-top:2px;font-size:0.72rem;}
+
+/* Legend */
+.legend{
+  position:absolute;bottom:20px;left:20px;
+  background:var(--white);border:1px solid var(--border);
+  border-radius:6px;padding:12px 14px;
+  font-size:0.7rem;
+}
+.legend-title{font-weight:600;color:var(--ink);margin-bottom:8px;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;}
+.legend-scale{display:flex;align-items:center;gap:0;margin-bottom:5px;}
+.legend-bar{height:10px;flex:1;border-radius:2px;}
+.legend-labels{display:flex;justify-content:space-between;color:var(--soft);font-size:0.65rem;}
+.legend-none{display:flex;align-items:center;gap:6px;color:var(--muted);margin-top:6px;}
+.legend-none-swatch{width:14px;height:10px;background:#e8eaf0;border-radius:2px;border:1px solid var(--border);}
+
+/* View toggle */
+.view-toggle{
+  position:absolute;top:16px;left:16px;
+  display:flex;background:var(--white);
+  border:1px solid var(--border);border-radius:5px;overflow:hidden;
+}
+.vt-btn{
+  font-size:0.7rem;font-weight:600;font-family:var(--sans);
+  padding:7px 14px;border:none;background:transparent;
+  color:var(--muted);cursor:pointer;transition:all 0.12s;
+  text-transform:uppercase;letter-spacing:0.08em;
+}
+.vt-btn.active{background:var(--ink);color:var(--white);}
+.vt-sep{width:1px;background:var(--border);}
+
+/* SIDEBAR */
+.sidebar{overflow-y:auto;background:var(--white);}
+
+/* Selected county panel */
+.county-panel{padding:24px 22px;border-bottom:1px solid var(--border);}
+.cp-empty{text-align:center;padding:40px 20px;color:var(--muted);}
+.cp-empty-icon{font-size:2rem;margin-bottom:8px;opacity:0.3;}
+.cp-empty-text{font-size:0.82rem;line-height:1.5;}
+.cp-name{font-family:var(--display);font-size:1.4rem;font-weight:700;letter-spacing:-0.01em;margin-bottom:14px;}
+.cp-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.cp-stat{background:var(--bg);border-radius:6px;padding:12px 14px;}
+.cp-stat-lbl{font-size:0.6rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--soft);margin-bottom:4px;}
+.cp-stat-val{font-family:var(--mono);font-size:0.95rem;font-weight:500;color:var(--ink);}
+.cp-stat-val.blue{color:var(--blue);}
+.cp-view-btn{
+  display:block;width:100%;
+  background:var(--ink);color:var(--white);
+  font-family:var(--sans);font-size:0.78rem;font-weight:600;
+  border:none;padding:11px;border-radius:5px;
+  cursor:pointer;text-align:center;text-decoration:none;
+  transition:background 0.15s;
+}
+.cp-view-btn:hover{background:var(--ink2);}
+
+/* Top counties list */
+.counties-list{padding:20px 22px;}
+.cl-header{font-size:0.62rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--soft);margin-bottom:14px;}
+.cl-row{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 0;border-bottom:1px solid var(--border);
+  cursor:pointer;transition:background 0.1s;
+}
+.cl-row:last-child{border-bottom:none;}
+.cl-row:hover .cl-name{color:var(--blue);}
+.cl-rank{font-family:var(--mono);font-size:0.7rem;color:var(--soft);width:20px;flex-shrink:0;}
+.cl-info{flex:1;}
+.cl-name{font-size:0.82rem;font-weight:600;color:var(--ink);transition:color 0.12s;}
+.cl-bar-wrap{width:80px;flex-shrink:0;}
+.cl-bar-track{height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.cl-bar-fill{height:100%;background:var(--blue);border-radius:3px;}
+.cl-wages{font-family:var(--mono);font-size:0.72rem;color:var(--blue);text-align:right;margin-top:2px;}
+
+@media(max-width:768px){
+  .layout{grid-template-columns:1fr;height:auto;}
+  .map-panel{height:60vw;min-height:300px;}
+  .sidebar{height:auto;max-height:50vh;}
+  .mh-top{padding:10px 16px;}
+  .mh-center{display:none;}
+  .page-head{padding:20px 16px;}
+}
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="mh-top">
+    <a class="mh-brand" href="index.html">NY Wage Theft Monitor</a>
+    <div class="mh-center">New York · Data through Jan 2025</div>
+    <nav class="mh-nav">
+      <a class="mh-link" href="index.html">Home</a>
+      <a class="mh-link" href="data.html">Search cases</a>
+      <a class="mh-link active" href="map.html">Map</a>
+    </nav>
+  </div>
+</div>
+
+<div class="page-head">
+  <div class="ph-kicker">Geographic breakdown</div>
+  <div class="ph-title">Wage theft by county</div>
+  <div class="ph-sub">Click any county to see total wages stolen, cases filed, and workers affected.</div>
+</div>
+
+<div class="layout">
+
+  <!-- MAP -->
+  <div class="map-panel" id="mapPanel">
+    <svg id="map-svg" viewBox="0 0 960 600"></svg>
+    <div class="map-tooltip" id="tooltip"></div>
+    <div class="view-toggle">
+      <button class="vt-btn active" onclick="setMetric('wages',this)">Wages</button>
+      <div class="vt-sep"></div>
+      <button class="vt-btn" onclick="setMetric('cases',this)">Cases</button>
+      <div class="vt-sep"></div>
+      <button class="vt-btn" onclick="setMetric('claimants',this)">Workers</button>
+    </div>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="county-panel" id="countyPanel">
+      <div class="cp-empty">
+        <div class="cp-empty-icon">↖</div>
+        <div class="cp-empty-text">Click a county on the map to see details</div>
+      </div>
+    </div>
+    <div class="counties-list">
+      <div class="cl-header">Top counties by wages stolen</div>
+      <div id="countyList"></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script>
+// ── Embedded county data ──────────────────────────────────────────
+const COUNTY_DATA = {"36001":{"n":"Albany","w":7411347.29,"c":681,"cl":33099},"36003":{"n":"Allegany","w":594357.56,"c":47,"cl":982},"36005":{"n":"Bronx","w":28135299.34,"c":1562,"cl":13025},"36007":{"n":"Broome","w":1630781.05,"c":283,"cl":2319},"36009":{"n":"Cattaraugus","w":738450.47,"c":108,"cl":834},"36011":{"n":"Cayuga","w":345484.03,"c":80,"cl":555},"36013":{"n":"Chautauqua","w":1486246.12,"c":176,"cl":1731},"36015":{"n":"Chemung","w":461654.83,"c":98,"cl":518},"36017":{"n":"Chenango","w":172669.48,"c":42,"cl":140},"36019":{"n":"Clinton","w":791391.23,"c":128,"cl":933},"36021":{"n":"Columbia","w":919453.08,"c":106,"cl":598},"36023":{"n":"Cortland","w":847772.05,"c":54,"cl":485},"36025":{"n":"Delaware","w":615218.61,"c":51,"cl":1754},"36027":{"n":"Dutchess","w":3687724.65,"c":405,"cl":6701},"36029":{"n":"Erie","w":15112204.62,"c":1903,"cl":23304},"36031":{"n":"Essex","w":438030.84,"c":57,"cl":577},"36033":{"n":"Franklin","w":89238.38,"c":31,"cl":205},"36035":{"n":"Fulton","w":272945.15,"c":57,"cl":402},"36037":{"n":"Genesee","w":1396006.17,"c":120,"cl":1700},"36039":{"n":"Greene","w":595400.7,"c":64,"cl":819},"36041":{"n":"Hamilton","w":76810.61,"c":7,"cl":27},"36043":{"n":"Herkimer","w":536599.84,"c":61,"cl":601},"36045":{"n":"Jefferson","w":1048363.89,"c":141,"cl":1681},"36047":{"n":"Kings","w":87296524.6,"c":4165,"cl":33653},"36049":{"n":"Lewis","w":646970.07,"c":24,"cl":565},"36051":{"n":"Livingston","w":366377.69,"c":90,"cl":455},"36053":{"n":"Madison","w":779696.78,"c":64,"cl":667},"36055":{"n":"Monroe","w":9339355.45,"c":1215,"cl":16865},"36057":{"n":"Montgomery","w":370435.76,"c":58,"cl":551},"36059":{"n":"Nassau","w":58911348.44,"c":2947,"cl":28345},"36061":{"n":"New York","w":95643149.67,"c":5840,"cl":57328},"36063":{"n":"Niagara","w":3003807.81,"c":320,"cl":4002},"36065":{"n":"Oneida","w":1882272.73,"c":257,"cl":4119},"36067":{"n":"Onondaga","w":11768104.82,"c":718,"cl":12006},"36069":{"n":"Ontario","w":1272179.06,"c":156,"cl":1629},"36071":{"n":"Orange","w":4482002.41,"c":573,"cl":4388},"36073":{"n":"Orleans","w":313264.48,"c":63,"cl":661},"36075":{"n":"Oswego","w":1018200.06,"c":101,"cl":741},"36077":{"n":"Otsego","w":693161.15,"c":82,"cl":954},"36079":{"n":"Putnam","w":1768368.58,"c":145,"cl":548},"36081":{"n":"Queens","w":82814333.68,"c":3826,"cl":27507},"36083":{"n":"Rensselaer","w":1198198.0,"c":215,"cl":1737},"36085":{"n":"Richmond","w":9971163.12,"c":507,"cl":3762},"36087":{"n":"Rockland","w":6921697.04,"c":464,"cl":4337},"36089":{"n":"St. Lawrence","w":345348.65,"c":81,"cl":361},"36091":{"n":"Saratoga","w":2234960.94,"c":442,"cl":4792},"36093":{"n":"Schenectady","w":1176971.61,"c":196,"cl":3992},"36095":{"n":"Schoharie","w":279599.73,"c":22,"cl":188},"36097":{"n":"Schuyler","w":123331.43,"c":11,"cl":53},"36099":{"n":"Seneca","w":179556.44,"c":46,"cl":199},"36101":{"n":"Steuben","w":747516.62,"c":111,"cl":988},"36103":{"n":"Suffolk","w":54037937.35,"c":2793,"cl":25061},"36105":{"n":"Sullivan","w":687078.53,"c":113,"cl":1010},"36107":{"n":"Tioga","w":163262.53,"c":43,"cl":113},"36109":{"n":"Tompkins","w":750739.86,"c":100,"cl":2220},"36111":{"n":"Ulster","w":2343310.69,"c":288,"cl":2488},"36113":{"n":"Warren","w":1129089.86,"c":199,"cl":1889},"36115":{"n":"Washington","w":218156.59,"c":57,"cl":201},"36117":{"n":"Wayne","w":434054.12,"c":112,"cl":904},"36119":{"n":"Westchester","w":22436415.55,"c":1823,"cl":12329},"36121":{"n":"Wyoming","w":201632.99,"c":44,"cl":291},"36123":{"n":"Yates","w":378304.1,"c":29,"cl":281}};
+
+// ── Helpers ───────────────────────────────────────────────────────
+function fmtM(n){if(n>=1e6)return'$'+(n/1e6).toFixed(1)+'M';if(n>=1e3)return'$'+(n/1e3).toFixed(0)+'K';return'$'+Math.round(n);}
+function fmt(n){return'$'+new Intl.NumberFormat('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}).format(n);}
+
+// ── State ─────────────────────────────────────────────────────────
+let currentMetric = 'wages';
+let selectedFips = null;
+let colorScale, paths;
+
+// Color ramps: light cream → deep blue (wages/claimants) or light → navy (cases)
+const RAMPS = {
+  wages:     ['#e8f0fd','#c8d9fa','#a0bef5','#6d9aee','#3d72d4','#1a4fb5','#0c3080'],
+  cases:     ['#f0f4ff','#d0dcfa','#a8bff5','#7098ee','#3d6dd4','#1a47b5','#0c2c80'],
+  claimants: ['#f0f4ff','#d0dcfa','#a8bff5','#7098ee','#3d6dd4','#1a47b5','#0c2c80'],
+};
+
+// ── Load topology ─────────────────────────────────────────────────
+d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json').then(counties => {
+  drawMap(counties);
+});
+
+function drawMap(us) {
+  const svg = d3.select('#map-svg');
+  const panel = document.getElementById('mapPanel');
+  const W = panel.clientWidth || 800;
+  const H = panel.clientHeight || 560;
+  svg.attr('viewBox', `0 0 ${W} ${H}`)
+     .attr('width', W)
+     .attr('height', H);
+
+  // Filter to NY counties first, then fit projection to JUST those
+  const nyCounties = topojson.feature(us, us.objects.counties).features
+    .filter(f => String(f.id).startsWith('36'));
+
+  const nyCollection = { type: 'FeatureCollection', features: nyCounties };
+
+  const projection = d3.geoMercator()
+    .fitExtent([[20, 20], [W - 20, H - 20]], nyCollection);
+
+  const path = d3.geoPath(projection);
+
+  buildColorScale();
+
+  paths = svg.selectAll('path.county')
+    .data(nyCounties)
+    .join('path')
+    .attr('class', 'county')
+    .attr('d', path)
+    .attr('fill', d => getFill(String(d.id).padStart(5,'0')))
+    .on('mousemove', onMouseMove)
+    .on('mouseleave', onMouseLeave)
+    .on('click', onClick);
+
+  buildLegend();
+  buildCountyList();
+}
+
+function buildColorScale() {
+  const vals = Object.values(COUNTY_DATA).map(d => d[metricKey()]).filter(v => v > 0);
+  const max = d3.max(vals);
+  colorScale = d3.scaleQuantize([0, max], RAMPS[currentMetric]);
+}
+
+function metricKey() {
+  return currentMetric === 'wages' ? 'w' : currentMetric === 'cases' ? 'c' : 'cl';
+}
+
+function getFill(fips) {
+  const d = COUNTY_DATA[fips];
+  if (!d || d[metricKey()] === 0) return '#e8eaf0';
+  return colorScale(d[metricKey()]);
+}
+
+function setMetric(m, btn) {
+  currentMetric = m;
+  document.querySelectorAll('.vt-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  buildColorScale();
+  if (paths) paths.attr('fill', d => getFill(String(d.id).padStart(5,'0')));
+  buildLegend();
+  buildCountyList();
+  if (selectedFips) renderPanel(selectedFips);
+}
+
+// Tooltip
+const tooltip = document.getElementById('tooltip');
+function onMouseMove(event, d) {
+  const fips = String(d.id).padStart(5,'0');
+  const data = COUNTY_DATA[fips];
+  if (!data) return;
+  tooltip.innerHTML = `
+    <div class="tt-county">${data.n} County</div>
+    <div class="tt-wages">${fmt(data.w)}</div>
+    <div class="tt-sub">${data.c.toLocaleString()} cases · ${data.cl.toLocaleString()} workers</div>`;
+  tooltip.classList.add('visible');
+  const rect = document.getElementById('mapPanel').getBoundingClientRect();
+  let x = event.clientX - rect.left + 12;
+  let y = event.clientY - rect.top - 10;
+  if (x + 180 > rect.width) x -= 200;
+  tooltip.style.left = x + 'px';
+  tooltip.style.top  = y + 'px';
+}
+function onMouseLeave() { tooltip.classList.remove('visible'); }
+
+function onClick(event, d) {
+  const fips = String(d.id).padStart(5,'0');
+  selectedFips = fips;
+  paths.classed('selected', f => String(f.id).padStart(5,'0') === fips);
+  renderPanel(fips);
+  // Highlight list row
+  document.querySelectorAll('.cl-row').forEach(r => {
+    r.style.background = r.dataset.fips === fips ? 'var(--blue-pale)' : '';
+  });
+}
+
+function renderPanel(fips) {
+  const d = COUNTY_DATA[fips];
+  if (!d) return;
+  const panel = document.getElementById('countyPanel');
+  panel.innerHTML = `
+    <div class="cp-name">${d.n} County</div>
+    <div class="cp-stats">
+      <div class="cp-stat">
+        <div class="cp-stat-lbl">Wages stolen</div>
+        <div class="cp-stat-val blue">${fmt(d.w)}</div>
+      </div>
+      <div class="cp-stat">
+        <div class="cp-stat-lbl">Cases filed</div>
+        <div class="cp-stat-val">${d.c.toLocaleString()}</div>
+      </div>
+      <div class="cp-stat">
+        <div class="cp-stat-lbl">Workers affected</div>
+        <div class="cp-stat-val">${d.cl.toLocaleString()}</div>
+      </div>
+      <div class="cp-stat">
+        <div class="cp-stat-lbl">Avg per case</div>
+        <div class="cp-stat-val">${d.c > 0 ? fmtM(d.w/d.c) : '—'}</div>
+      </div>
+    </div>
+    <a class="cp-view-btn" href="data.html?county=${encodeURIComponent(d.n+' County')}">
+      Browse ${d.n} County cases →
+    </a>`;
+}
+
+// Legend
+function buildLegend() {
+  const vals = Object.values(COUNTY_DATA).map(d => d[metricKey()]).filter(v => v > 0);
+  const max = d3.max(vals);
+  const steps = 7;
+  const gradient = RAMPS[currentMetric].join(', ');
+  const labels = {wages:'Wages stolen',cases:'Cases filed',claimants:'Workers affected'};
+  document.getElementById('legend').innerHTML = `
+    <div class="legend-title">${labels[currentMetric]}</div>
+    <div class="legend-scale">
+      <div class="legend-bar" style="background:linear-gradient(90deg,${gradient})"></div>
+    </div>
+    <div class="legend-labels">
+      <span>$0</span>
+      <span>${fmtM(max/2)}</span>
+      <span>${fmtM(max)}</span>
+    </div>
+    <div class="legend-none"><div class="legend-none-swatch"></div><span>No data</span></div>`;
+}
+
+// County list
+function buildCountyList() {
+  const mk = metricKey();
+  const sorted = Object.entries(COUNTY_DATA)
+    .map(([fips,d]) => ({fips,...d}))
+    .sort((a,b) => b[mk] - a[mk]);
+  const max = sorted[0][mk];
+
+  const container = document.getElementById('countyList');
+  container.innerHTML = sorted.map((d,i) => {
+    const pct = (d[mk]/max*100).toFixed(1);
+    const val = mk==='w' ? fmtM(d.w) : mk==='c' ? d.c.toLocaleString() : d.cl.toLocaleString();
+    return `<div class="cl-row" data-fips="${d.fips}" onclick="clickListRow('${d.fips}')">
+      <span class="cl-rank">${i+1}</span>
+      <div class="cl-info">
+        <div class="cl-name">${d.n}</div>
+        <div class="cl-bar-wrap">
+          <div class="cl-bar-track"><div class="cl-bar-fill" style="width:${pct}%"></div></div>
+          <div class="cl-wages">${val}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function clickListRow(fips) {
+  selectedFips = fips;
+  if (paths) paths.classed('selected', d => String(d.id).padStart(5,'0') === fips);
+  renderPanel(fips);
+  document.querySelectorAll('.cl-row').forEach(r => {
+    r.style.background = r.dataset.fips === fips ? 'var(--blue-pale)' : '';
+  });
+}
+
+// Redraw on resize
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    d3.select('#map-svg').selectAll('*').remove();
+    d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json').then(drawMap);
+  }, 200);
+});
+</script>
+</body>
+</html>

@@ -207,7 +207,7 @@ footer{border-top:2px solid var(--ink);padding:20px 0 28px;margin-top:0;}
       <div class="st">
         <div class="st-lbl">Total wages owed</div>
         <div class="st-val blue" id="svTotal">—</div>
-        <div class="st-note">Documented by DOL</div>
+        <div class="st-note">From DOL records</div>
       </div>
       <div class="st">
         <div class="st-lbl">Workers affected</div>
@@ -221,13 +221,6 @@ footer{border-top:2px solid var(--ink);padding:20px 0 28px;margin-top:0;}
       </div>
     </div>
 
-    <!-- Callout -->
-    <div class="callout">
-      <span style="font-size:0.95rem;flex-shrink:0;margin-top:2px">⚠</span>
-      <div class="callout-text">
-        <strong>Note on dates.</strong> The date shown is when the DOL investigation was filed — not when it resolved. Some cases remain open. The final amount recovered may differ from the amount owed shown here.
-      </div>
-    </div>
 
     <!-- Industry comparison -->
     <div class="dh" id="industry">
@@ -313,7 +306,7 @@ function render(co, stats){
     co.city ? `<span class="pill">📍 ${escHtml(co.city)}${co.county?', '+escHtml(co.county):''}</span>` : '',
     co.industry ? `<span class="pill blue">${escHtml(co.industry)}</span>` : '',
     co.date ? `<span class="pill">Case filed: ${fmtDate(co.date)}</span>` : '',
-    `<span class="pill">DOL Record</span>`,
+    co.zip ? `<span class="pill">${escHtml(co.zip)}</span>` : '',
   ];
   meta.innerHTML = pills.filter(Boolean).join('');
 
@@ -325,9 +318,7 @@ function render(co, stats){
 
   // Body text
   document.getElementById('bodyText').innerHTML =
-    `The figures below come directly from Department of Labor investigative records.
-    They represent wages <strong>found to be owed</strong> — not allegations.
-    Scroll down to see how <strong>${escHtml(co.name)}</strong> compares to others
+    `Scroll down to see how <strong>${escHtml(co.name)}</strong> compares to others
     in the <strong>${escHtml(co.ind||'Other')}</strong> industry and across all
     documented New York wage theft cases.`;
 
