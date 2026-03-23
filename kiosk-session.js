@@ -5,7 +5,7 @@
 (function() {
   const TIMEOUT    = 30;   // seconds before returning to kiosk
   const WARN_AT    = 10;   // seconds left when popup appears
-  const KIOSK_URL  = 'kiosk.html';
+  const KIOSK_URL  = 'https://kristof-j.github.io/nycwagetheft/kiosk.html';
   const SESSION_KEY = 'kioskSession';
 
   // Check if we're arriving fresh from a QR scan
