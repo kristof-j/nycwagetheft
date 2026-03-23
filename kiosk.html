@@ -32,6 +32,22 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  /* ── Mobile: allow scroll and resize ── */
+  @media (max-width: 768px) {
+    html, body { overflow: auto; height: auto; min-height: 100vh; }
+    .screen { height: auto; min-height: 100vh; padding: 60px 24px 40px; }
+    .idle-headline {
+      font-size: clamp(3rem, 14vw, 6rem) !important;
+      margin-bottom: 20px !important;
+    }
+    .idle-sub      { font-size: 1.3rem !important; margin-bottom: 48px !important; }
+    .site-label    { font-size: 0.8rem !important; margin-bottom: 40px !important; }
+    .qr-graphic    { width: 160px !important; height: 160px !important; }
+    .idle-cta      { font-size: 1rem !important; }
+    .explore-btn   { font-size: 1rem !important; padding: 14px 32px !important; margin-top: 28px !important; }
+    .bottom-bar    { position: relative !important; margin-top: 40px; }
+  }
+
   /* ── Top rule ── */
   .top-rule {
     position: fixed; top: 0; left: 0; right: 0;
