@@ -273,6 +273,8 @@ document.addEventListener('keydown', e => {
     timer = setTimeout(() => { if (buffer.length > 0) handleScan(buffer); buffer = ''; }, 500);
   }
 });
+
+function printReceipt(worker, company, checkNum, amount) {
   const fmt = (n) => '$' + parseFloat(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
   <style>
@@ -318,6 +320,8 @@ document.addEventListener('keydown', e => {
     setTimeout(() => { frame.style.display = 'none'; }, 2000);
   };
 }
+
+function handleScan(raw) {
   raw = raw.trim();
   let companyId = null;
   const m = raw.match(/[?&]company=([^&\s]+)/);
