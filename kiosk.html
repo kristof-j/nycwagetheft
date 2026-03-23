@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="refresh" content="0;url=https://kristof-j.github.io/nycwagetheft/kiosk.html">
 <title>NY Wage Theft Monitor — Kiosk</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Play:wght@400;700&family=Source+Code+Pro:wght@400;500&display=swap');
@@ -317,7 +318,7 @@ function printReceipt(worker, company, checkNum, amount) {
   frame.onload = () => {
     frame.contentWindow.focus();
     frame.contentWindow.print();
-    setTimeout(() => { frame.style.display = 'none'; }, 2000);
+    setTimeout(() => { frame.style.display = 'none'; }, 3000);
   };
 }
 
@@ -349,7 +350,7 @@ function handleScan(raw) {
   const flash = document.getElementById('flash');
   flash.classList.add('go');
   setTimeout(() => flash.classList.remove('go'), 150);
-  setTimeout(() => { window.location.href = BASE + companyId; }, 800);
+  setTimeout(() => { window.location.href = raw.includes('http') ? raw : BASE + companyId; }, 800);
 }
 
 show('idle');

@@ -57,33 +57,6 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-
 }
 .cbr-btn:hover{background:var(--blue-dark);}
 
-/* STILL THERE POPUP */
-.stp-card{
-  background:var(--white);border-radius:10px;
-  padding:32px 36px;text-align:center;
-  max-width:340px;width:90%;
-  box-shadow:0 20px 60px rgba(0,0,0,0.3);
-}
-.stp-title{
-  font-family:var(--display);font-size:1.5rem;
-  font-weight:700;color:var(--ink);margin-bottom:8px;
-}
-.stp-sub{font-size:0.88rem;color:var(--muted);margin-bottom:24px;line-height:1.5;}
-.stp-sub strong{color:var(--ink);}
-.stp-actions{display:flex;flex-direction:column;gap:10px;}
-.stp-stay{
-  font-family:var(--sans);font-size:0.88rem;font-weight:700;
-  background:var(--ink);color:#fff;border:none;
-  padding:13px;border-radius:6px;cursor:pointer;transition:background 0.15s;
-}
-.stp-stay:hover{background:var(--ink2);}
-.stp-leave{
-  font-family:var(--sans);font-size:0.82rem;font-weight:700;
-  background:none;color:var(--muted);border:1px solid var(--border);
-  padding:11px;border-radius:6px;cursor:pointer;transition:all 0.15s;
-}
-.stp-leave:hover{color:var(--ink);border-color:var(--ink);}
-
 /* CHECK BANNER */
 #checkBanner{background:var(--ink);border-bottom:1px solid rgba(255,255,255,0.08);}
 .check-banner-inner{max-width:860px;margin:0 auto;padding:28px 32px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;}
@@ -253,18 +226,6 @@ footer{border-top:2px solid var(--ink);padding:20px 0 28px;margin-top:0;}
   </div>
 </div>
 
-<!-- Still there popup -->
-<div id="stillTherePopup" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;">
-  <div class="stp-card">
-    <div class="stp-title">Are you still there?</div>
-    <div class="stp-sub">The kiosk will reset in <strong id="kioskCountdown2">10</strong> seconds.</div>
-    <div class="stp-actions">
-      <button class="stp-stay" onclick="stayHere()">Keep reading</button>
-      <button class="stp-leave" onclick="returnToKiosk()">← Back to scanner</button>
-    </div>
-  </div>
-</div>
-
 <!-- Main content (shown after load) -->
 <div id="mainContent">
 
@@ -379,13 +340,6 @@ if(urlWorker && urlAmount) {
   document.getElementById('cbAmountBig').textContent  = '$'+new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}).format(parseFloat(urlAmount));
 }
 
-function returnToKiosk() {
-  sessionStorage.removeItem('kioskSession');
-  window.location.href = 'https://kristof-j.github.io/nycwagetheft/kiosk.html';
-}
-function stayHere() {
-  document.getElementById('stillTherePopup').style.display = 'none';
-}
 if(!companyId){ showError('No company specified.'); }
 else { loadData(); }
 
