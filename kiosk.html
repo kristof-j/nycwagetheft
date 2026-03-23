@@ -149,15 +149,14 @@
 
   /* ══ MOBILE — defined LAST so it overrides everything above ══ */
   @media (max-width: 768px) {
-    html, body { overflow: auto; height: auto; min-height: 100vh; }
-    .screen { height: auto; min-height: 100vh; padding: 80px 24px 120px; }
-    .idle-headline { font-size: 13vw; line-height: 1.05; margin-bottom: 20px; }
-    .idle-sub { font-size: 1.25rem; margin-bottom: 48px; }
-    .site-label { font-size: 0.8rem; margin-bottom: 44px; }
-    .qr-graphic { width: 160px; height: 160px; }
-    .idle-cta { font-size: 1rem; letter-spacing: 0.2em; }
-    .explore-btn { font-size: 1rem; padding: 14px 32px; margin-top: 28px; }
-    .bottom-bar { position: fixed; }
+    html, body { overflow: hidden; height: 100%; }
+    .screen { height: 100vh; padding: 0 24px; justify-content: center; }
+    .idle-headline { font-size: 11vw; line-height: 1.05; margin-bottom: 12px; }
+    .idle-sub { font-size: 1.1rem; margin-bottom: 28px; }
+    .site-label { font-size: 0.75rem; margin-bottom: 24px; padding-bottom: 10px; }
+    .qr-graphic { width: 100px; height: 100px; margin-bottom: 12px; }
+    .idle-cta { font-size: 0.85rem; }
+    .explore-btn { font-size: 0.9rem; padding: 11px 28px; margin-top: 16px; }
     .launch-company { font-size: 11vw; }
   }
 </style>
