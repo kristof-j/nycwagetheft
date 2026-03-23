@@ -147,7 +147,18 @@
   .flash { position: fixed; inset: 0; z-index: 100; background: var(--white); opacity: 0; pointer-events: none; transition: opacity 0.1s ease; }
   .flash.go { opacity: 1; }
 
-  /* ══ MOBILE — defined LAST so it overrides everything above ══ */
+  .test-bar {
+    margin-top: 24px;
+    width: 100%; max-width: 500px;
+  }
+  .test-input {
+    width: 100%; padding: 10px 14px;
+    font-family: var(--mono); font-size: 0.72rem;
+    color: var(--muted); background: var(--bg);
+    border: 1px dashed var(--border); border-radius: 4px;
+    outline: none;
+  }
+  .test-input:focus { border-color: var(--blue); color: var(--ink); }
   @media (max-width: 768px) {
     html, body { overflow: hidden; height: 100%; }
     .screen { height: 100vh; padding: 0 24px; justify-content: center; }
@@ -165,9 +176,6 @@
 
 <!-- Hidden receipt for auto-printing -->
 <iframe id="receiptFrame" style="display:none"></iframe>
-
-<!-- Hidden input that stays focused to capture scanner keystrokes -->
-<input id="scanInput" style="position:fixed;opacity:0;top:0;left:0;width:1px;height:1px;border:none;outline:none;" autocomplete="off" />
 
 <div class="top-rule"></div>
 <div class="flash" id="flash"></div>
@@ -239,44 +247,32 @@ function show(id) {
 
 let buffer = '', timer = null;
 
-// Keep hidden input always focused — works for both scanner and Ctrl+V testing
-const scanInput = document.getElementById('scanInput');
-function refocus() { scanInput.focus(); }
-refocus();
-document.addEventListener('click', refocus);
-setInterval(refocus, 1000); // re-focus every second in case something steals it
-
-scanInput.addEventListener('paste', e => {
-  e.preventDefault();
+// Simple document-level paste — this is what worked before
+document.addEventListener('paste', e => {
   const text = (e.clipboardData || window.clipboardData).getData('text').trim();
-  if (text) { scanInput.value = ''; handleScan(text); }
+  if (text) handleScan(text);
 });
 
-scanInput.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { scanInput.value = ''; buffer = ''; clearTimeout(timer); show('idle'); }
+// Scanner keystrokes — typed character by character
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.altKey || e.metaKey) return;
+  if (e.key === 'Escape') { buffer = ''; clearTimeout(timer); show('idle'); return; }
   if (e.key === 'Enter') {
     clearTimeout(timer);
-    const val = scanInput.value.trim();
-    scanInput.value = ''; buffer = '';
-    if (val) handleScan(val);
+    if (buffer.length > 0) handleScan(buffer);
+    buffer = '';
+    return;
+  }
+  if (e.key.length === 1) {
+    buffer += e.key;
+    if (buffer.length >= 3) {
+      show('reading');
+      document.getElementById('readingVal').textContent = buffer;
+    }
+    clearTimeout(timer);
+    timer = setTimeout(() => { if (buffer.length > 0) handleScan(buffer); buffer = ''; }, 500);
   }
 });
-
-scanInput.addEventListener('input', () => {
-  buffer = scanInput.value;
-  if (buffer.length >= 3) {
-    show('reading');
-    document.getElementById('readingVal').textContent = buffer;
-  }
-  clearTimeout(timer);
-  timer = setTimeout(() => {
-    const val = scanInput.value.trim();
-    scanInput.value = ''; buffer = '';
-    if (val) handleScan(val);
-  }, 500);
-});
-
-function printReceipt(worker, company, checkNum, amount) {
   const fmt = (n) => '$' + parseFloat(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
   <style>
