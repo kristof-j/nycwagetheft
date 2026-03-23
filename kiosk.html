@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NY Wage Theft Monitor — Kiosk</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Play:wght@400;700&family=Source+Code+Pro:wght@400;500&display=swap');
@@ -17,7 +18,6 @@
     --border: #dee2ea;
     --muted: #667085;
     --soft: #98a2b3;
-    --red: #b92b2b;
     --display: 'Black Han Sans', Georgia, serif;
     --sans: 'Play', system-ui, sans-serif;
     --mono: 'Source Code Pro', monospace;
@@ -32,41 +32,21 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* ── Mobile: allow scroll and resize ── */
-  @media (max-width: 768px) {
-    html, body { overflow: auto; height: auto; min-height: 100vh; }
-    .screen { height: auto; min-height: 100vh; padding: 60px 24px 40px; }
-    .idle-headline {
-      font-size: clamp(3rem, 14vw, 6rem) !important;
-      margin-bottom: 20px !important;
-    }
-    .idle-sub      { font-size: 1.3rem !important; margin-bottom: 48px !important; }
-    .site-label    { font-size: 0.8rem !important; margin-bottom: 40px !important; }
-    .qr-graphic    { width: 160px !important; height: 160px !important; }
-    .idle-cta      { font-size: 1rem !important; }
-    .explore-btn   { font-size: 1rem !important; padding: 14px 32px !important; margin-top: 28px !important; }
-    .bottom-bar    { position: relative !important; margin-top: 40px; }
-  }
-
-  /* ── Top rule ── */
   .top-rule {
     position: fixed; top: 0; left: 0; right: 0;
-    height: 4px; background: var(--ink);
-    z-index: 10;
+    height: 4px; background: var(--ink); z-index: 10;
   }
 
-  /* ── Main screen ── */
   .screen {
     width: 100%; height: 100vh;
     display: flex; flex-direction: column;
     justify-content: center; align-items: center;
   }
 
-  /* ══ IDLE ══ */
   #idle {
     display: flex; flex-direction: column;
-    align-items: center; text-align: center;
-    gap: 0;
+    align-items: center; text-align: center; gap: 0;
+    padding: 0 20px;
   }
 
   .site-label {
@@ -74,53 +54,32 @@
     text-transform: uppercase; letter-spacing: 0.2em;
     color: var(--soft); margin-bottom: 32px;
     border-bottom: 1px solid var(--border);
-    padding-bottom: 14px; width: 100%;
-    text-align: center;
+    padding-bottom: 14px; width: 100%; text-align: center;
   }
 
   .idle-headline {
     font-family: var(--display);
     font-size: clamp(2.8rem, 5vw, 4.5rem);
     font-weight: 700; line-height: 1.1;
-    letter-spacing: -0.02em; color: var(--ink);
-    margin-bottom: 14px;
+    color: var(--ink); margin-bottom: 14px;
   }
   .idle-headline em { font-style: italic; color: var(--blue); }
 
   .idle-sub {
-    font-size: 1rem; font-weight: 400;
-    color: var(--muted); margin-bottom: 52px;
-    letter-spacing: 0.01em;
+    font-size: 1rem; color: var(--muted);
+    margin-bottom: 52px; letter-spacing: 0.01em;
   }
 
-  /* QR placeholder graphic */
   .qr-graphic {
     width: 110px; height: 110px;
-    border: 2px solid var(--ink);
-    padding: 10px;
-    margin-bottom: 18px;
-    position: relative;
-  }
-
-  /* ── Mobile — bigger everything ── */
-  @media (max-width: 640px) {
-    .idle-headline { font-size: clamp(3.2rem, 12vw, 5rem); margin-bottom: 18px; }
-    .idle-sub      { font-size: 1.2rem; margin-bottom: 44px; }
-    .site-label    { font-size: 0.75rem; margin-bottom: 40px; }
-    .qr-graphic    { width: 140px; height: 140px; }
-    .idle-cta      { font-size: 0.9rem; }
-    .explore-btn   { font-size: 0.9rem; padding: 12px 28px; margin-top: 24px; }
+    border: 2px solid var(--ink); padding: 10px;
+    margin-bottom: 18px; position: relative;
   }
   .qr-inner {
     width: 100%; height: 100%;
-    display: grid; grid-template-columns: repeat(7,1fr);
-    gap: 2px;
+    display: grid; grid-template-columns: repeat(7,1fr); gap: 2px;
   }
-  .qr-inner span {
-    background: var(--ink);
-    border-radius: 1px;
-  }
-  /* Scanning line */
+  .qr-inner span { background: var(--ink); border-radius: 1px; }
   .scan-bar {
     position: absolute; left: 10px; right: 10px; height: 2px;
     background: var(--blue); top: 10px;
@@ -134,119 +93,73 @@
 
   .idle-cta {
     font-size: 0.75rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.18em;
-    color: var(--ink);
+    text-transform: uppercase; letter-spacing: 0.18em; color: var(--ink);
   }
   .explore-btn {
-    margin-top: 20px;
-    display: inline-block;
+    margin-top: 20px; display: inline-block;
     font-size: 0.78rem; font-weight: 700;
     color: var(--muted); text-decoration: none;
-    border: 1px solid var(--border);
-    padding: 9px 20px; border-radius: 4px;
-    transition: all 0.15s;
-    font-family: var(--sans);
+    border: 1px solid var(--border); padding: 9px 20px;
+    border-radius: 4px; transition: all 0.15s; font-family: var(--sans);
   }
   .explore-btn:hover { color: var(--ink); border-color: var(--ink); }
 
-  /* ══ READING ══ */
+  /* READING */
   #reading {
     display: none; flex-direction: column;
-    align-items: center; gap: 14px; text-align: center;
+    align-items: center; gap: 14px; text-align: center; padding: 0 20px;
   }
-  .reading-lbl {
-    font-size: 0.65rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.18em;
-    color: var(--soft);
-  }
-  .reading-val {
-    font-family: var(--mono);
-    font-size: 0.9rem; color: var(--muted);
-    max-width: 500px; word-break: break-all;
-    line-height: 1.5;
-  }
-  .reading-progress {
-    width: 160px; height: 2px;
-    background: var(--border); border-radius: 1px;
-    overflow: hidden;
-  }
-  .reading-fill {
-    height: 100%; background: var(--ink);
-    border-radius: 1px;
-    animation: fillBar 0.6s ease forwards;
-  }
+  .reading-lbl { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: var(--soft); }
+  .reading-val { font-family: var(--mono); font-size: 0.9rem; color: var(--muted); max-width: 500px; word-break: break-all; line-height: 1.5; }
+  .reading-progress { width: 160px; height: 2px; background: var(--border); border-radius: 1px; overflow: hidden; }
+  .reading-fill { height: 100%; background: var(--ink); border-radius: 1px; animation: fillBar 0.6s ease forwards; }
   @keyframes fillBar { to { width: 100%; } }
 
-  /* ══ LAUNCHING ══ */
+  /* LAUNCHING */
   #launching {
     display: none; flex-direction: column;
-    align-items: center; text-align: center; gap: 12px;
+    align-items: center; text-align: center; gap: 12px; padding: 0 20px;
   }
-  .launch-lbl {
-    font-size: 0.62rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.18em;
-    color: var(--soft);
-  }
-  .launch-company {
-    font-family: var(--display);
-    font-size: clamp(2rem, 4vw, 3rem);
-    font-weight: 700; color: var(--ink);
-    letter-spacing: -0.02em; line-height: 1.1;
-    margin-bottom: 4px;
-  }
-  .launch-wages {
-    font-family: var(--mono);
-    font-size: 1.1rem; color: var(--blue);
-    font-weight: 700;
-  }
-  .launch-spinner {
-    width: 24px; height: 24px;
-    border: 2px solid var(--border);
-    border-top-color: var(--ink);
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    margin-top: 12px;
-  }
+  .launch-lbl { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: var(--soft); }
+  .launch-company { font-family: var(--display); font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; color: var(--ink); line-height: 1.1; margin-bottom: 4px; }
+  .launch-spinner { width: 24px; height: 24px; border: 2px solid var(--border); border-top-color: var(--ink); border-radius: 50%; animation: spin 0.7s linear infinite; margin-top: 12px; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ══ ERROR ══ */
+  /* ERROR */
   #error-state {
     display: none; flex-direction: column;
-    align-items: center; gap: 10px; text-align: center;
+    align-items: center; gap: 10px; text-align: center; padding: 0 20px;
   }
-  .err-rule { width: 32px; height: 3px; background: var(--red); margin-bottom: 4px; }
-  .err-title {
-    font-family: var(--display);
-    font-size: 1.4rem; font-weight: 700; color: var(--ink);
-  }
+  .err-rule { width: 32px; height: 3px; background: #b92b2b; margin-bottom: 4px; }
+  .err-title { font-family: var(--display); font-size: 1.4rem; font-weight: 700; color: var(--ink); }
   .err-sub { font-size: 0.82rem; color: var(--muted); }
 
-  /* ── Bottom bar ── */
+  /* BOTTOM BAR */
   .bottom-bar {
     position: fixed; bottom: 0; left: 0; right: 0;
     padding: 14px 40px;
     display: flex; justify-content: space-between; align-items: center;
-    border-top: 1px solid var(--border);
-    background: var(--white);
-    z-index: 10;
+    border-top: 1px solid var(--border); background: var(--white); z-index: 10;
   }
-  .bb-brand {
-    font-size: 0.68rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.12em;
-    color: var(--soft);
-  }
-  .bb-right {
-    font-size: 0.65rem; color: var(--soft);
-    font-family: var(--mono); letter-spacing: 0.06em;
-  }
+  .bb-brand { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--soft); }
+  .bb-right { font-size: 0.65rem; color: var(--soft); font-family: var(--mono); letter-spacing: 0.06em; }
 
-  /* Flash on navigate */
-  .flash {
-    position: fixed; inset: 0; z-index: 100;
-    background: var(--white); opacity: 0; pointer-events: none;
-    transition: opacity 0.1s ease;
-  }
+  .flash { position: fixed; inset: 0; z-index: 100; background: var(--white); opacity: 0; pointer-events: none; transition: opacity 0.1s ease; }
   .flash.go { opacity: 1; }
+
+  /* ══ MOBILE — defined LAST so it overrides everything above ══ */
+  @media (max-width: 768px) {
+    html, body { overflow: auto; height: auto; min-height: 100vh; }
+    .screen { height: auto; min-height: 100vh; padding: 80px 24px 120px; }
+    .idle-headline { font-size: 13vw; line-height: 1.05; margin-bottom: 20px; }
+    .idle-sub { font-size: 1.25rem; margin-bottom: 48px; }
+    .site-label { font-size: 0.8rem; margin-bottom: 44px; }
+    .qr-graphic { width: 160px; height: 160px; }
+    .idle-cta { font-size: 1rem; letter-spacing: 0.2em; }
+    .explore-btn { font-size: 1rem; padding: 14px 32px; margin-top: 28px; }
+    .bottom-bar { position: fixed; }
+    .launch-company { font-size: 11vw; }
+  }
 </style>
 </head>
 <body>
@@ -256,7 +169,6 @@
 
 <div class="screen">
 
-  <!-- IDLE -->
   <div id="idle">
     <div class="site-label">NY Wage Theft Monitor</div>
     <div class="idle-headline">
@@ -271,22 +183,18 @@
     <a class="explore-btn" href="index.html">Explore the data →</a>
   </div>
 
-  <!-- READING -->
   <div id="reading">
     <div class="reading-lbl">Reading…</div>
     <div class="reading-val" id="readingVal">—</div>
     <div class="reading-progress"><div class="reading-fill"></div></div>
   </div>
 
-  <!-- LAUNCHING -->
   <div id="launching">
     <div class="launch-lbl">Loading case record</div>
     <div class="launch-company" id="launchCompany">—</div>
-    <div class="launch-wages" id="launchWages"></div>
     <div class="launch-spinner"></div>
   </div>
 
-  <!-- ERROR -->
   <div id="error-state">
     <div class="err-rule"></div>
     <div class="err-title">Unrecognized code</div>
@@ -303,9 +211,8 @@
 <script>
 const BASE = "https://kristof-j.github.io/nycwagetheft/wage_theft.html?company=";
 
-const COMPANIES = {"royal-care":"Royal Care","american-business-institute":"American Business Institute","agl-industries-inc":"AGL Industries Inc","bouchard-transportation-company":"Bouchard Transportation Company","abi-american-business-institute-corp":"ABI/American Business Institute Corp","united-states-postal-service":"United States Postal Service","feher-rubbish-removal":"Feher Rubbish Removal","ba-kal-restaurant-corp":"Ba-Kal Restaurant Corp","streamline-group-inc":"Streamline Group Inc.","onondaga-county-children-and-family-services":"Onondaga County — Children & Family Services","dizzy-s":"Dizzy's","belmont-racetrack-brown":"Belmont Racetrack (Brown)","rk-seamless-gutters-inc":"RK Seamless Gutters Inc.","titan-development":"Titan Development","kum-gang-san":"Kum Gang San","jerome-beverage-inc":"Jerome Beverage Inc","eastern-fruit-vegetables-inc":"Eastern Fruit & Vegetables, Inc.","esteemed-patrol-inc":"Esteemed Patrol Inc","presidential-security-company":"Presidential Security Company","climax-manufacturing":"Climax Manufacturing","jackies-kids":"Jackies Kids","repairs-on-wheels":"Repairs on Wheels","charles-d-rinaldi-inc":"Charles D. Rinaldi, Inc.","sofar-sounds":"SoFar Sounds","brachs-supermarket":"Brachs Supermarket","albany-public-schools":"Albany Public Schools","long-beach-police-department":"Long Beach Police Department","dropcar-inc":"DropCar Inc.","a-sam-family-farms":"A Sam Family Farms","advance-auto-parts":"Advance Auto Parts","cardworks-servicing":"Cardworks Servicing","fine-fare-supermarket":"Fine Fare Supermarket","hepworth-farms":"Hepworth Farms","nypd-school-safety-division-manhattan-south":"NYPD School Safety Division Manhattan South","ernst-young-us-llp":"Ernst & Young US LLP","du-pasquier-co-inc":"Du Pasquier & Co. Inc."};
+const COMPANIES = {"royal-care":"Royal Care","american-business-institute":"American Business Institute","agl-industries-inc":"AGL Industries Inc","bouchard-transportation-company":"Bouchard Transportation Company","abiamerican-business-institute-corp":"ABI/American Business Institute Corp","united-states-postal-service":"United States Postal Service","feher-rubbish-removal":"Feher Rubbish Removal","ba-kal-restaurant-corp":"Ba-Kal Restaurant Corp","streamline-group-inc":"Streamline Group Inc.","onondaga-county-children-and-family-services":"Onondaga County — Children & Family Services","dizzys":"Dizzy's","belmont-racetrack-brown":"Belmont Racetrack (Brown)","rk-seamless-gutters-inc":"RK Seamless Gutters Inc.","titan-development":"Titan Development","kum-gang-san":"Kum Gang San","jerome-beverage-inc":"Jerome Beverage Inc","eastern-fruit-vegetables-inc":"Eastern Fruit & Vegetables, Inc.","esteemed-patrol-inc":"Esteemed Patrol Inc","presidential-security-company":"Presidential Security Company","climax-manufacturing":"Climax Manufacturing","jackies-kids":"Jackies Kids","repairs-on-wheels":"Repairs on Wheels","charles-d-rinaldi-inc":"Charles D. Rinaldi, Inc.","sofar-sounds":"SoFar Sounds","brachs-supermarket":"Brachs Supermarket","albany-public-schools":"Albany Public Schools","long-beach-police-department":"Long Beach Police Department","dropcar-inc":"DropCar Inc.","a-sam-family-farms":"A Sam Family Farms","advance-auto-parts":"Advance Auto Parts","cardworks-servicing":"Cardworks Servicing","fine-fare-supermarket":"Fine Fare Supermarket","hepworth-farms":"Hepworth Farms","nypd-school-safety-division-manhattan-south":"NYPD School Safety Division Manhattan South","ernst-young-us-llp":"Ernst & Young US LLP","du-pasquier-co-inc":"Du Pasquier & Co. Inc."};
 
-// QR grid pattern
 const pat = [1,1,1,0,1,1,1,1,0,0,1,0,1,0,1,0,1,0,1,0,1,1,0,0,1,0,0,0,1,0,0,0,1,1,0,1,1,1,0,1,0,1,0,1,0,0,0,1,1];
 const grid = document.getElementById('qrGrid');
 pat.forEach(v => {
@@ -314,24 +221,20 @@ pat.forEach(v => {
   grid.appendChild(s);
 });
 
-// Clock
 function updateClock() {
   document.getElementById('bbTime').textContent = new Date().toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
 }
 updateClock();
 setInterval(updateClock, 10000);
 
-// Screen switcher
 function show(id) {
   ['idle','reading','launching','error-state'].forEach(s => {
     document.getElementById(s).style.display = s === id ? 'flex' : 'none';
   });
 }
 
-// Scanner input
 let buffer = '', timer = null;
 
-// Support paste for testing (Ctrl+V) — scanner uses keydown but paste works the same way
 document.addEventListener('paste', e => {
   const text = (e.clipboardData || window.clipboardData).getData('text').trim();
   if (text) handleScan(text);
@@ -339,16 +242,13 @@ document.addEventListener('paste', e => {
 
 document.addEventListener('keydown', e => {
   if (e.ctrlKey || e.altKey || e.metaKey) return;
-
   if (e.key === 'Escape') { buffer = ''; clearTimeout(timer); show('idle'); return; }
-
   if (e.key === 'Enter') {
     clearTimeout(timer);
     if (buffer.length > 0) handleScan(buffer);
     buffer = '';
     return;
   }
-
   if (e.key.length === 1) {
     buffer += e.key;
     if (buffer.length >= 3) {
@@ -369,12 +269,11 @@ function handleScan(raw) {
 
   if (!companyId || !COMPANIES[companyId]) {
     show('error-state');
-    setTimeout(() => { buffer = ''; show('idle'); }, 3000);
+    setTimeout(() => { buffer = ''; show('idle'); }, 3500);
     return;
   }
 
   document.getElementById('launchCompany').textContent = COMPANIES[companyId];
-  document.getElementById('launchWages').textContent = '';
   show('launching');
 
   const flash = document.getElementById('flash');
