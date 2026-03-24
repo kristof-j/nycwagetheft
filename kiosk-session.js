@@ -128,8 +128,8 @@
     window.location.href = KIOSK_URL;
   }
 
-  // ── Reset on any interaction ────────────────────────────────────
-  ['click','scroll','keydown','touchstart'].forEach(evt => {
+  // ── Reset on click/touch only — keyboard ignored so AutoHotkey can't interfere ──
+  ['click','touchstart'].forEach(evt => {
     document.addEventListener(evt, () => {
       if(secondsLeft > WARN_AT) return; // only reset if we're in warning zone
       resetTimer();
