@@ -226,8 +226,8 @@ footer{border-top:2px solid var(--ink);padding:20px 0 28px;margin-top:0;}
   </div>
 </div>
 
-<!-- Hidden receipt for printing -->
-<iframe id="receiptFrame" style="display:none"></iframe>
+<!-- Hidden receipt for printing — positioned off screen -->
+<iframe id="receiptFrame" style="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;"></iframe>
 
 <!-- Main content (shown after load) -->
 <div id="mainContent">
@@ -362,14 +362,12 @@ function printReceipt(co, worker, checkNum, amount) {
   document.title = 'PRINTING_NOW';
 
   const frame = document.getElementById('receiptFrame');
-  frame.style.display = 'block';
   frame.srcdoc = html;
   frame.onload = () => {
     setTimeout(() => {
       frame.contentWindow.focus();
       frame.contentWindow.print();
       setTimeout(() => {
-        frame.style.display = 'none';
         document.title = co.name + ' — NY Wage Theft Monitor';
       }, 3000);
     }, 800);
