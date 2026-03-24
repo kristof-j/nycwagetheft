@@ -223,7 +223,7 @@
 
 <script>
 const BASE = "https://kristof-j.github.io/nycwagetheft/wage_theft.html?company=";
-const COMPANIES = {"royal-care":"Royal Care","american-business-institute":"American Business Institute","agl-industries-inc":"AGL Industries Inc","bouchard-transportation-company":"Bouchard Transportation Company","abiamerican-business-institute-corp":"ABI/American Business Institute Corp","united-states-postal-service":"United States Postal Service","feher-rubbish-removal":"Feher Rubbish Removal","ba-kal-restaurant-corp":"Ba-Kal Restaurant Corp","streamline-group-inc":"Streamline Group Inc.","onondaga-county-children-and-family-services":"Onondaga County — Children & Family Services","dizzys":"Dizzy's","belmont-racetrack-brown":"Belmont Racetrack (Brown)","rk-seamless-gutters-inc":"RK Seamless Gutters Inc.","titan-development":"Titan Development","kum-gang-san":"Kum Gang San","jerome-beverage-inc":"Jerome Beverage Inc","eastern-fruit-vegetables-inc":"Eastern Fruit & Vegetables, Inc.","esteemed-patrol-inc":"Esteemed Patrol Inc","presidential-security-company":"Presidential Security Company","climax-manufacturing":"Climax Manufacturing","jackies-kids":"Jackies Kids","repairs-on-wheels":"Repairs on Wheels","charles-d-rinaldi-inc":"Charles D. Rinaldi, Inc.","sofar-sounds":"SoFar Sounds","brachs-supermarket":"Brachs Supermarket","albany-public-schools":"Albany Public Schools","long-beach-police-department":"Long Beach Police Department","dropcar-inc":"DropCar Inc.","a-sam-family-farms":"A Sam Family Farms","advance-auto-parts":"Advance Auto Parts","cardworks-servicing":"Cardworks Servicing","fine-fare-supermarket":"Fine Fare Supermarket","hepworth-farms":"Hepworth Farms","nypd-school-safety-division-manhattan-south":"NYPD School Safety Division Manhattan South","ernst-young-us-llp":"Ernst & Young US LLP","du-pasquier-co-inc":"Du Pasquier & Co. Inc."};
+const CLAIMANTS = {"royal-care":112,"american-business-institute":133,"agl-industries-inc":249,"bouchard-transportation-company":405,"abiamerican-business-institute-corp":36,"united-states-postal-service":20802,"feher-rubbish-removal":585,"ba-kal-restaurant-corp":15,"streamline-group-inc":142,"onondaga-county-children-and-family-services":117,"dizzys":31,"belmont-racetrack-brown":236,"rk-seamless-gutters-inc":121,"titan-development":19,"kum-gang-san":30,"jerome-beverage-inc":8,"eastern-fruit-vegetables-inc":22,"esteemed-patrol-inc":208,"presidential-security-company":193,"climax-manufacturing":275,"jackies-kids":9,"repairs-on-wheels":41,"charles-d-rinaldi-inc":1,"sofar-sounds":633,"brachs-supermarket":156,"albany-public-schools":85,"long-beach-police-department":11,"dropcar-inc":290,"a-sam-family-farms":74,"advance-auto-parts":2943,"cardworks-servicing":72,"fine-fare-supermarket":370,"hepworth-farms":135,"nypd-school-safety-division-manhattan-south":965,"ernst-young-us-llp":1,"du-pasquier-co-inc":2};"royal-care":"Royal Care","american-business-institute":"American Business Institute","agl-industries-inc":"AGL Industries Inc","bouchard-transportation-company":"Bouchard Transportation Company","abiamerican-business-institute-corp":"ABI/American Business Institute Corp","united-states-postal-service":"United States Postal Service","feher-rubbish-removal":"Feher Rubbish Removal","ba-kal-restaurant-corp":"Ba-Kal Restaurant Corp","streamline-group-inc":"Streamline Group Inc.","onondaga-county-children-and-family-services":"Onondaga County — Children & Family Services","dizzys":"Dizzy's","belmont-racetrack-brown":"Belmont Racetrack (Brown)","rk-seamless-gutters-inc":"RK Seamless Gutters Inc.","titan-development":"Titan Development","kum-gang-san":"Kum Gang San","jerome-beverage-inc":"Jerome Beverage Inc","eastern-fruit-vegetables-inc":"Eastern Fruit & Vegetables, Inc.","esteemed-patrol-inc":"Esteemed Patrol Inc","presidential-security-company":"Presidential Security Company","climax-manufacturing":"Climax Manufacturing","jackies-kids":"Jackies Kids","repairs-on-wheels":"Repairs on Wheels","charles-d-rinaldi-inc":"Charles D. Rinaldi, Inc.","sofar-sounds":"SoFar Sounds","brachs-supermarket":"Brachs Supermarket","albany-public-schools":"Albany Public Schools","long-beach-police-department":"Long Beach Police Department","dropcar-inc":"DropCar Inc.","a-sam-family-farms":"A Sam Family Farms","advance-auto-parts":"Advance Auto Parts","cardworks-servicing":"Cardworks Servicing","fine-fare-supermarket":"Fine Fare Supermarket","hepworth-farms":"Hepworth Farms","nypd-school-safety-division-manhattan-south":"NYPD School Safety Division Manhattan South","ernst-young-us-llp":"Ernst & Young US LLP","du-pasquier-co-inc":"Du Pasquier & Co. Inc."};
 
 const pat = [1,1,1,0,1,1,1,1,0,0,1,0,1,0,1,0,1,0,1,0,1,1,0,0,1,0,0,0,1,0,0,0,1,1,0,1,1,1,0,1,0,1,0,1,0,0,0,1,1];
 const grid = document.getElementById('qrGrid');
@@ -274,9 +274,10 @@ document.addEventListener('keydown', e => {
   }
 });
 
-function printReceipt(worker, company, checkNum, amount) {
+function printReceipt(worker, company, checkNum, amount, claimants) {
   const fmt = (n) => '$' + parseFloat(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>
   <style>
     @media print {
       @page { size: 80mm auto; margin: 4mm; }
@@ -289,11 +290,13 @@ function printReceipt(worker, company, checkNum, amount) {
       color: #000;
     }
     .center { text-align: center; }
-    .big    { font-size: 18px; font-weight: bold; }
+    .big    { font-size: 17px; font-weight: bold; }
     .huge   { font-size: 22px; font-weight: bold; }
     .rule   { border-top: 1px dashed #000; margin: 6px 0; }
     .spacer { height: 6px; }
     .bold   { font-weight: bold; }
+    #qrcode { display:flex; justify-content:center; margin: 6px 0; }
+    #qrcode canvas { width: 80px !important; height: 80px !important; }
   </style>
   </head><body>
     <div class="center big">NY WAGE THEFT<br>MONITOR</div>
@@ -301,23 +304,40 @@ function printReceipt(worker, company, checkNum, amount) {
     <div>Check: #${checkNum}</div>
     <div>Worker: ${worker}</div>
     <div>Employer: ${company}</div>
+    <div>Workers affected: ${claimants.toLocaleString()}</div>
     <div class="spacer"></div>
     <div class="center huge">${fmt(amount)}</div>
     <div class="center">your share of wages stolen</div>
     <div class="rule"></div>
     <div class="center">Owed wages? Get free help:</div>
     <div class="center bold">reclamo.ai</div>
+    <div id="qrcode"></div>
     <div class="rule"></div>
     <div class="spacer"></div>
+  <script>
+    new QRCode(document.getElementById('qrcode'), {
+      text: 'https://reclamo.ai',
+      width: 80, height: 80,
+      colorDark: '#000', colorLight: '#fff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  <\/script>
   </body></html>`;
 
   const frame = document.getElementById('receiptFrame');
   frame.style.display = 'block';
   frame.srcdoc = html;
   frame.onload = () => {
-    frame.contentWindow.focus();
-    frame.contentWindow.print();
-    setTimeout(() => { frame.style.display = 'none'; }, 3000);
+    // Wait for QR code script to render before printing
+    setTimeout(() => {
+      frame.contentWindow.focus();
+      frame.contentWindow.print();
+      // Reset title so AutoHotkey stops watching
+      setTimeout(() => {
+        document.title = 'NY Wage Theft Monitor — Kiosk';
+        frame.style.display = 'none';
+      }, 3000);
+    }, 800);
   };
 }
 
@@ -337,6 +357,9 @@ function handleScan(raw) {
   document.getElementById('launchCompany').textContent = COMPANIES[companyId];
   show('launching');
 
+  // Signal AutoHotkey by changing title — it watches for PRINTING_NOW
+  document.title = 'PRINTING_NOW';
+
   // Extract params from URL
   const urlParams = new URLSearchParams(raw.includes('?') ? raw.split('?')[1] : '');
   const worker   = urlParams.get('worker')  || 'Worker';
@@ -344,7 +367,7 @@ function handleScan(raw) {
   const amount   = urlParams.get('amount')  || '0';
 
   // Auto-print receipt silently
-  printReceipt(worker, COMPANIES[companyId], checkNum, amount);
+  printReceipt(worker, COMPANIES[companyId], checkNum, amount, CLAIMANTS[companyId] || 0);
 
   const flash = document.getElementById('flash');
   flash.classList.add('go');
@@ -353,6 +376,9 @@ function handleScan(raw) {
 }
 
 show('idle');
+
+// Set kiosk session — any page navigated to from here will have the countdown timer
+sessionStorage.setItem('kioskSession', 'active');
 </script>
 </body>
 </html>
