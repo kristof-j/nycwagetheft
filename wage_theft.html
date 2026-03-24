@@ -226,6 +226,9 @@ footer{border-top:2px solid var(--ink);padding:20px 0 28px;margin-top:0;}
   </div>
 </div>
 
+<!-- Hidden receipt for printing -->
+<iframe id="receiptFrame" style="display:none"></iframe>
+
 <!-- Main content (shown after load) -->
 <div id="mainContent">
 
@@ -323,6 +326,55 @@ footer{border-top:2px solid var(--ink);padding:20px 0 28px;margin-top:0;}
 function fmt(n){return'$'+new Intl.NumberFormat('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}).format(n);}
 function fmtM(n){if(n>=1e6)return'$'+(n/1e6).toFixed(1)+'M';if(n>=1e3)return'$'+(n/1e3).toFixed(0)+'K';return fmt(n);}
 function fmtDate(s){if(!s||s==='None')return'Unknown';const[y,m,d]=s.split('-');if(!m)return s;return['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m-1]+' '+parseInt(d)+', '+y;}
+
+function printReceipt(co, worker, checkNum, amount) {
+  const fmtAmt = (n) => '$'+parseFloat(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>
+  <style>
+    @media print { @page { size: 80mm auto; margin: 4mm; } * { margin:0;padding:0; } }
+    body { font-family:'Courier New',monospace; font-size:13px; width:72mm; color:#000; }
+    .center{text-align:center;} .big{font-size:17px;font-weight:bold;} .huge{font-size:22px;font-weight:bold;}
+    .rule{border-top:1px dashed #000;margin:6px 0;} .spacer{height:6px;} .bold{font-weight:bold;}
+    #qrcode{display:flex;justify-content:center;margin:6px 0;}
+    #qrcode canvas{width:80px!important;height:80px!important;}
+  </style></head><body>
+    <div class="center big">NY WAGE THEFT<br>MONITOR</div>
+    <div class="rule"></div>
+    <div>Check: #${checkNum}</div>
+    <div>Worker: ${worker}</div>
+    <div>Employer: ${co.name}</div>
+    <div>Workers affected: ${co.claimants.toLocaleString()}</div>
+    <div class="spacer"></div>
+    <div class="center huge">${fmtAmt(amount)}</div>
+    <div class="center">your share of wages stolen</div>
+    <div class="rule"></div>
+    <div class="center">Owed wages? Get free help:</div>
+    <div class="center bold">reclamo.ai</div>
+    <div id="qrcode"></div>
+    <div class="rule"></div>
+    <div class="spacer"></div>
+  <script>
+    new QRCode(document.getElementById('qrcode'),{text:'https://reclamo.ai',width:80,height:80,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M});
+  <\/script></body></html>`;
+
+  // Signal AutoHotkey
+  document.title = 'PRINTING_NOW';
+
+  const frame = document.getElementById('receiptFrame');
+  frame.style.display = 'block';
+  frame.srcdoc = html;
+  frame.onload = () => {
+    setTimeout(() => {
+      frame.contentWindow.focus();
+      frame.contentWindow.print();
+      setTimeout(() => {
+        frame.style.display = 'none';
+        document.title = co.name + ' — NY Wage Theft Monitor';
+      }, 3000);
+    }, 800);
+  };
+}
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 const urlParams  = new URLSearchParams(window.location.search);
@@ -368,6 +420,9 @@ function render(co, stats){
     document.getElementById('cbCompany').textContent = co.name;
     document.getElementById('cbSub').innerHTML =
       `Check ${urlCheck ? '#'+urlCheck+' · ' : ''}<strong>${co.name}</strong> owes this person <strong>$${new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}).format(parseFloat(urlAmount))}</strong>`;
+
+    // Trigger receipt print from this page — more reliable than from kiosk.html
+    setTimeout(() => printReceipt(co, urlWorker, urlCheck, urlAmount), 500);
   }
 
   // Header

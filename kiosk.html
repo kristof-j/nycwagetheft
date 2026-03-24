@@ -367,9 +367,7 @@ function handleScan(raw) {
   const checkNum = urlParams.get('check')   || '—';
   const amount   = urlParams.get('amount')  || '0';
 
-  // Auto-print receipt silently
-  printReceipt(worker, COMPANIES[companyId], checkNum, amount, CLAIMANTS[companyId] || 0);
-
+  // Navigate to full case page — print is handled by wage_theft.html on load
   const flash = document.getElementById('flash');
   flash.classList.add('go');
   setTimeout(() => flash.classList.remove('go'), 150);
