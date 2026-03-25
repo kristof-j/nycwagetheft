@@ -3,7 +3,7 @@
 // Activates only when ?worker= param is present (i.e. arrived via check scan).
 
 (function() {
-  const TIMEOUT    = 30;   // seconds before returning to kiosk
+  const TIMEOUT    = 60;   // seconds before returning to kiosk
   const WARN_AT    = 10;   // seconds left when popup appears
   const KIOSK_URL  = 'https://kristof-j.github.io/nycwagetheft/kiosk.html';
   const SESSION_KEY = 'kioskSession';
@@ -128,10 +128,9 @@
     window.location.href = KIOSK_URL;
   }
 
-  // ── Reset on click/touch only — keyboard ignored so AutoHotkey can't interfere ──
+  // Reset on click/touch at any time
   ['click','touchstart'].forEach(evt => {
     document.addEventListener(evt, () => {
-      if(secondsLeft > WARN_AT) return; // only reset if we're in warning zone
       resetTimer();
     }, { passive: true });
   });
